@@ -34,6 +34,14 @@ emptyInterpretation :: Interpretation
 emptyInterpretation _ = error "free variable"
 
 
+extend :: Interpretation -> Var -> Set State -> Interpretation
+extend p x s y =
+    -- extend p by mapping x to s
+    -- the extended interpretation takes an argument y
+    if y == x then s
+    else p y
+
+
 check :: KripkeModel -> Formula -> Set State
 check model formula =
     let (states, trans, sat) = model
@@ -53,18 +61,34 @@ check model formula =
                                 -- s is the states that satisfy p
                                 -- we want the states with AT LEAST ONE successor in s
                                 in Data.Set.filter (\x -> not (trans x `disjoint` s)) states
+                            Mu x p ->
+                                -- we need to do a fixpoint computation
+                                -- start with x = empty
+                                -- then do x = [[p]]
+                                -- until x isn't changed
+                                let initialInterpretation = extend emptyInterpretation x empty
+                                    computeFixpoint s currentInterpretation =
+                                        let t = check' p currentInterpretation in
+                                            if s == t then t
+                                            else computeFixpoint t (extend currentInterpretation x t)
+                                in computeFixpoint empty initialInterpretation
     in check' formula emptyInterpretation
 
 
 main = 
-    let myStates = fromList [0, 1, 2]
-        myPredicates = fromList [3, 4, 5]
-        myTrans s = singleton ((s+1) `mod` 3) 
-        mySat s p = (s+3 == p)
-
+    let myStates = fromList [0, 1, 2, 7]
+        myPredicates = fromList [3, 4, 5, 8]
+        myTrans s =
+            if s == 0 then fromList [1, 7]
+            else if s < 3 then singleton ((s+1) `mod` 3)
+            else singleton s
+        mySat s p =
+            if s < 3 then s+3 == p
+            else (p == 8)
         myKripkeStructure = (myStates, myTrans, mySat)
-
-        myFormula = Diamond (Disjunction (Predicate 3) (Predicate 4))
+        myFormula = Mu 6 (Disjunction (Predicate 3) (Diamond (Variable 6)))
+        myFormula2 = Mu 9 (Disjunction (Predicate 8) (Diamond (Variable 9)))
     in do {
         print $ check myKripkeStructure myFormula;
+        print $ check myKripkeStructure myFormula2;
     }
