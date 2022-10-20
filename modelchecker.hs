@@ -1,12 +1,16 @@
+import qualified Prelude
+import Prelude hiding (filter, map, not, or, sum)
+
 import Data.Set
 
 
-type State = Int
+newtype State = State Int deriving (Show, Eq, Ord)
 
-type Pred = Int
+newtype Pred = Pred Int deriving (Show, Eq, Ord)
 
-type Var = Int
+newtype Var = Var Int deriving (Show, Eq, Ord)
 
+-- TODO: look into map datatype
 type TransRel = State -> Set State
 
 type SatRel = State -> Pred -> Bool
@@ -29,6 +33,7 @@ data Formula =
 
 type Interpretation = Var -> Set State
 -- An interpretation is a (partial) function from the variables to the set of states
+-- TODO: make into a map
 
 emptyInterpretation :: Interpretation
 emptyInterpretation _ = error "free variable"
@@ -60,7 +65,7 @@ check model formula =
                                 let s = check' p interpretation
                                 -- s is the states that satisfy p
                                 -- we want the states with AT LEAST ONE successor in s
-                                in Data.Set.filter (\x -> not (trans x `disjoint` s)) states
+                                in Data.Set.filter (\x -> Prelude.not (trans x `disjoint` s)) states
                             Mu x p ->
                                 -- we need to do a fixpoint computation
                                 -- start with x = empty
@@ -75,19 +80,28 @@ check model formula =
     in check' formula emptyInterpretation
 
 
+main :: IO ()
 main = 
-    let myStates = fromList [0, 1, 2, 7]
-        myPredicates = fromList [3, 4, 5, 8]
-        myTrans s =
-            if s == 0 then fromList [1, 7]
-            else if s < 3 then singleton ((s+1) `mod` 3)
-            else singleton s
-        mySat s p =
+    let myStates :: Set State
+        myStates = fromList $ Prelude.map State [0, 1, 2, 7]
+        myPredicates :: Set Pred
+        myPredicates = fromList $ Prelude.map Pred [3, 4, 5, 8]
+        myTrans :: TransRel
+        myTrans (State s)
+            | s == 0        = fromList $ Prelude.map State [1, 7]
+            | s < 3         = singleton $ State ((s+1) `mod` 3)
+            | otherwise     = singleton $ State s
+        mySat :: SatRel
+        mySat (State s) (Pred p) =
             if s < 3 then s+3 == p
-            else (p == 8)
+            else p == 8
         myKripkeStructure = (myStates, myTrans, mySat)
-        myFormula = Mu 6 (Disjunction (Predicate 3) (Diamond (Variable 6)))
-        myFormula2 = Mu 9 (Disjunction (Predicate 8) (Diamond (Variable 9)))
+        a = Pred 3
+        b = Pred 8
+        x = Var 6
+        y = Var 9
+        myFormula = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
+        myFormula2 = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
     in do {
         print $ check myKripkeStructure myFormula;
         print $ check myKripkeStructure myFormula2;
