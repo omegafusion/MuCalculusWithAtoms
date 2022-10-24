@@ -1,8 +1,11 @@
 import Prelude hiding (filter, map, not, or, sum)
 import qualified Prelude
 
-import Data.Set (Set, union, fromList, empty, difference)
+import Data.Set (Set, union, fromList, difference)
 import qualified Data.Set as Set
+
+import Data.Map (Map, (!))
+import qualified Data.Map as Map
 
 
 newtype State = State Int deriving (Show, Eq, Ord)
@@ -11,20 +14,12 @@ newtype Pred = Pred Int deriving (Show, Eq, Ord)
 
 newtype Var = Var Int deriving (Show, Eq, Ord)
 
--- TODO: look into map datatype
 type TransRel = Set (State, State)
--- type TransRel = State -> Set State
 
 type SatRel = Set (State, Pred)
--- type SatRel = State -> Pred -> Bool
 
 type KripkeModel = (Set State, TransRel, SatRel)
-
-
 -- A Kripke model is a triple consisting of a state set, a transition relation and a satisfaction relation
-
--- Our set of propositions will just be the integers
--- As will our set of variables
 
 data Formula =
     Predicate Pred
@@ -34,20 +29,9 @@ data Formula =
     | Diamond Formula
     | Mu Var Formula
 
-type Interpretation = Var -> Set State
+type Interpretation = Map Var (Set State)
 -- An interpretation is a (partial) function from the variables to the set of states
--- TODO: make into a map
 
-emptyInterpretation :: Interpretation
-emptyInterpretation _ = error "free variable"
-
-
-extend :: Interpretation -> Var -> Set State -> Interpretation
-extend p x s y =
-    -- extend p by mapping x to s
-    -- the extended interpretation takes an argument y
-    if y == x then s
-    else p y
 
 
 check :: KripkeModel -> Formula -> Set State
@@ -56,7 +40,7 @@ check model formula =
         check' :: Formula -> Interpretation -> Set State
         check' formula interpretation =
             case formula of Predicate p -> Set.filter (\x -> (x, p) `elem` sat) states
-                            Variable v -> interpretation v
+                            Variable v -> interpretation ! v
                             Disjunction p q ->
                                 let s = check' p interpretation
                                     t = check' q interpretation
@@ -72,16 +56,16 @@ check model formula =
                                 in Set.filter canReach states
                             Mu x p ->
                                 -- we need to do a fixpoint computation
-                                -- start with x = empty
+                                -- start with x = {}}
                                 -- then do x = [[p]]
                                 -- until x isn't changed
-                                let initialInterpretation = extend emptyInterpretation x empty
+                                let initialInterpretation = Map.insert x Set.empty interpretation
                                     computeFixpoint s currentInterpretation =
                                         let t = check' p currentInterpretation in
                                             if s == t then t
-                                            else computeFixpoint t (extend currentInterpretation x t)
-                                in computeFixpoint empty initialInterpretation
-    in check' formula emptyInterpretation
+                                            else computeFixpoint t (Map.insert x t currentInterpretation)
+                                in computeFixpoint Set.empty initialInterpretation
+    in check' formula Map.empty
 
 
 main :: IO ()
