@@ -1,7 +1,8 @@
-import qualified Prelude
 import Prelude hiding (filter, map, not, or, sum)
+import qualified Prelude
 
-import Data.Set
+import Data.Set (Set, union, fromList, empty, difference)
+import qualified Data.Set as Set
 
 
 newtype State = State Int deriving (Show, Eq, Ord)
@@ -54,7 +55,7 @@ check model formula =
     let (states, trans, sat) = model
         check' :: Formula -> Interpretation -> Set State
         check' formula interpretation =
-            case formula of Predicate p -> Data.Set.filter (\x -> (x, p) `elem` sat) states
+            case formula of Predicate p -> Set.filter (\x -> (x, p) `elem` sat) states
                             Variable v -> interpretation v
                             Disjunction p q ->
                                 let s = check' p interpretation
@@ -65,10 +66,10 @@ check model formula =
                                 in states `difference` s  -- TODO
                             Diamond p ->
                                 let s = check' p interpretation
-                                    canReach x = Prelude.not $ Data.Set.null $ Data.Set.filter (\y -> (x, y) `elem` trans) s
+                                    canReach x = Prelude.not $ Set.null $ Set.filter (\y -> (x, y) `elem` trans) s
                                 -- s is the states that satisfy p
                                 -- we want the states with AT LEAST ONE successor in s
-                                in Data.Set.filter canReach states
+                                in Set.filter canReach states
                             Mu x p ->
                                 -- we need to do a fixpoint computation
                                 -- start with x = empty
