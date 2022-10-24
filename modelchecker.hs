@@ -90,9 +90,14 @@ main =
         b = Pred 8
         x = Var 6
         y = Var 9
+        -- is a state with Pred 3 reachable?
         myFormula = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
+        -- is a state with Pred 8 reachable?
         myFormula2 = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
+        -- not Pred 3 and not Pred 8
+        myFormula3 = Negation (Disjunction (Predicate a) (Predicate b))
     in do {
         print $ check myKripkeStructure myFormula;
         print $ check myKripkeStructure myFormula2;
+        print $ check myKripkeStructure myFormula3;
     }
