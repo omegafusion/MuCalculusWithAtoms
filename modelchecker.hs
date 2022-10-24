@@ -11,9 +11,11 @@ newtype Pred = Pred Int deriving (Show, Eq, Ord)
 newtype Var = Var Int deriving (Show, Eq, Ord)
 
 -- TODO: look into map datatype
-type TransRel = State -> Set State
+type TransRel = Set (State, State)
+-- type TransRel = State -> Set State
 
-type SatRel = State -> Pred -> Bool
+type SatRel = Set (State, Pred)
+-- type SatRel = State -> Pred -> Bool
 
 type KripkeModel = (Set State, TransRel, SatRel)
 
@@ -52,7 +54,7 @@ check model formula =
     let (states, trans, sat) = model
         check' :: Formula -> Interpretation -> Set State
         check' formula interpretation =
-            case formula of Predicate p -> Data.Set.filter (`sat` p) states
+            case formula of Predicate p -> Data.Set.filter (\x -> (x, p) `elem` sat) states
                             Variable v -> interpretation v
                             Disjunction p q ->
                                 let s = check' p interpretation
@@ -63,9 +65,10 @@ check model formula =
                                 in states `difference` s  -- TODO
                             Diamond p ->
                                 let s = check' p interpretation
+                                    canReach x = Prelude.not $ Data.Set.null $ Data.Set.filter (\y -> (x, y) `elem` trans) s
                                 -- s is the states that satisfy p
                                 -- we want the states with AT LEAST ONE successor in s
-                                in Data.Set.filter (\x -> Prelude.not (trans x `disjoint` s)) states
+                                in Data.Set.filter canReach states
                             Mu x p ->
                                 -- we need to do a fixpoint computation
                                 -- start with x = empty
@@ -87,14 +90,16 @@ main =
         myPredicates :: Set Pred
         myPredicates = fromList $ Prelude.map Pred [3, 4, 5, 8]
         myTrans :: TransRel
-        myTrans (State s)
-            | s == 0        = fromList $ Prelude.map State [1, 7]
-            | s < 3         = singleton $ State ((s+1) `mod` 3)
-            | otherwise     = singleton $ State s
+        myTrans = fromList [(State 0, State 1),
+                            (State 1, State 2),
+                            (State 2, State 0),
+                            (State 0, State 7),
+                            (State 7, State 7)]
         mySat :: SatRel
-        mySat (State s) (Pred p) =
-            if s < 3 then s+3 == p
-            else p == 8
+        mySat = fromList [(State 0, Pred 3),
+                          (State 1, Pred 4),
+                          (State 2, Pred 5),
+                          (State 7, Pred 8)]
         myKripkeStructure = (myStates, myTrans, mySat)
         a = Pred 3
         b = Pred 8
