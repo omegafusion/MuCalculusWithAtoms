@@ -3,6 +3,8 @@ import Prelude hiding (filter, map, not, or, sum)
 
 import Data.Set
 
+import Parser (Formula (..))
+
 
 newtype State = State Int deriving (Show, Eq, Ord)
 
