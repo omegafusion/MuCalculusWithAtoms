@@ -7,8 +7,10 @@ import Data.Char (isDigit, isAlpha, isSpace)
 import Lexer (Token (..),
               lexer)
 import Syntax (Formula (..),
+               AtomicFormula (..),
                Var (..),
                Pred (..),
+               negation,
                substitute)
 }
 
@@ -38,23 +40,28 @@ import Syntax (Formula (..),
 -- TODO: Duals
 
 Formula     : mu var dot Formula      { Mu $2 $4 }
-            | nu var dot Formula      { Negation (Mu $2 (Negation (substitute $2 (Negation (Variable $2)) $4))) }
+            | nu var dot Formula      { Nu $2 $4 }
             | Formula1                { $1 }
 
 Formula1    : Formula2 or Formula1    { Disjunction $1 $3 }
-            | Formula2 and Formula1   { Negation (Disjunction (Negation $1) (Negation $3)) }
+            | Formula2 and Formula1   { Conjunction $1 $3 }
             | Formula2                { $1 }
 
-Formula2    : not Formula2            { Negation $2 }
+Formula2    : not Formula2            { negation $2 }
             | dia Formula2            { Diamond $2 }
-            | box Formula2            { Negation (Diamond (Negation $2)) }
+            | box Formula2            { Box $2 }
             | Formula3                { $1 }
 
-Formula3    : true                    { Disjunction (Predicate pred0) (Negation (Predicate pred0)) }
-            | false                   { Negation (Disjunction (Predicate pred0) (Negation (Predicate pred0))) }
-            | pred                    { Predicate $1 }
-            | var                     { Variable $1 }
+Formula3    : AtomicForm              { Positive $1 }
+            | TruthValue              { $1 }
             | lpar Formula rpar       { $2 }
+
+AtomicForm  : pred                    { Predicate $1 }
+            | var                     { Variable $1 }
+            -- TODO: True and false
+
+TruthValue  : true                    { Disjunction (Positive (Predicate pred0)) (Negative (Predicate pred0)) }
+            | false                   { Conjunction (Positive (Predicate pred0)) (Negative (Predicate pred0)) }
 
 
 {
