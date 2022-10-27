@@ -3,14 +3,12 @@ import Prelude hiding (filter, map, not, or, sum)
 
 import Data.Set
 
-import Syntax (Formula (..))
-
+import Syntax (
+    Formula (..),
+    Pred, Var)
 
 newtype State = State Int deriving (Show, Eq, Ord)
 
-newtype Pred = Pred Int deriving (Show, Eq, Ord)
-
-newtype Var = Var Int deriving (Show, Eq, Ord)
 
 -- TODO: look into map datatype
 type TransRel = State -> Set State
@@ -79,21 +77,27 @@ main =
     let myStates :: Set State
         myStates = fromList $ Prelude.map State [0, 1, 2, 7]
         myPredicates :: Set Pred
-        myPredicates = fromList $ Prelude.map Pred [3, 4, 5, 8]
+        --myPredicates = fromList $ Prelude.map Pred [3, 4, 5, 8]
+        myPredicates = fromList [3, 4, 5, 8]
         myTrans :: TransRel
         myTrans (State s)
             | s == 0        = fromList $ Prelude.map State [1, 7]
             | s < 3         = singleton $ State ((s+1) `mod` 3)
             | otherwise     = singleton $ State s
         mySat :: SatRel
-        mySat (State s) (Pred p) =
+        --mySat (State s) (Pred p) =
+        mySat (State s) p =
             if s < 3 then s+3 == p
             else p == 8
         myKripkeStructure = (myStates, myTrans, mySat)
-        a = Pred 3
-        b = Pred 8
-        x = Var 6
-        y = Var 9
+        --a = Pred 3
+        a = 3
+        --b = Pred 8
+        b = 8
+        --x = Var 6
+        x = 6
+        --y = Var 9
+        y = 9
         myFormula = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
         myFormula2 = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
     in do {

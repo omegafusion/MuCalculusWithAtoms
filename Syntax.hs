@@ -4,9 +4,11 @@ module Syntax
      Var,
      substitute) where
 
---newtype Pred = Pred Int
+
+--newtype Pred = Pred Int deriving (Show, Eq, Ord)
 type Pred = Int
 
+--newtype Var = Var Int deriving (Show, Eq, Ord)
 type Var = Int
 
 data Formula
