@@ -25,14 +25,6 @@ type KripkeModel = (Set State, TransRel, SatRel)
 -- Our set of propositions will just be the integers
 -- As will our set of variables
 
-data Formula =
-    Predicate Pred
-    | Variable Var
-    | Disjunction Formula Formula
-    | Negation Formula
-    | Diamond Formula
-    | Mu Var Formula
-
 type Interpretation = Var -> Set State
 -- An interpretation is a (partial) function from the variables to the set of states
 -- TODO: make into a map
