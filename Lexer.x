@@ -3,6 +3,10 @@ module Lexer (
   Token (..),
   lexer
 ) where
+
+import Syntax (
+  Pred (..),
+  Var (..))
 }
 
 %wrapper "basic"
@@ -13,8 +17,8 @@ $alpha = [a-zA-Z]		-- alphabetic characters
 tokens :-
 
   $white+		    ;
-  "p"$digit+    { \s -> TokenPred (read (tail s)) }
-  "v"$digit+    { \s -> TokenVar (read (tail s)) }
+  "p"$digit+    { \s -> TokenPred (Pred $ read (tail s)) }
+  "v"$digit+    { \s -> TokenVar (Var $ read (tail s)) }
   "("           { \s -> TokenOB }
   ")"           { \s -> TokenCB }
   "~"           { \s -> TokenNeg }
@@ -33,8 +37,8 @@ tokens :-
 
 -- The token type:
 data Token 
-      = TokenPred Int
-      | TokenVar Int 
+      = TokenPred Pred
+      | TokenVar Var 
       | TokenOB      
       | TokenCB      
       | TokenNeg     

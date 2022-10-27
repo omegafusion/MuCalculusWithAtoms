@@ -1,15 +1,13 @@
 module Syntax
     (Formula (..),
-     Pred,
-     Var,
+     Pred (..),
+     Var (..),
      substitute) where
 
 
---newtype Pred = Pred Int deriving (Show, Eq, Ord)
-type Pred = Int
+newtype Pred = Pred Int deriving (Show, Eq, Ord)
 
---newtype Var = Var Int deriving (Show, Eq, Ord)
-type Var = Int
+newtype Var = Var Int deriving (Show, Eq, Ord)
 
 data Formula
       = Predicate Pred

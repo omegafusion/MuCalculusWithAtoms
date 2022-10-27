@@ -7,8 +7,8 @@ import Data.Char (isDigit, isAlpha, isSpace)
 import Lexer (Token (..),
               lexer)
 import Syntax (Formula (..),
-               Var,
-               Pred,
+               Var (..),
+               Pred (..),
                substitute)
 }
 
@@ -50,8 +50,8 @@ Formula2    : not Formula2            { Negation $2 }
             | box Formula2            { Negation (Diamond (Negation $2)) }
             | Formula3                { $1 }
 
-Formula3    : true                    { Disjunction (Predicate 0) (Negation (Predicate 0)) }
-            | false                   { Negation (Disjunction (Predicate 0) (Negation (Predicate 0))) }
+Formula3    : true                    { Disjunction (Predicate pred0) (Negation (Predicate pred0)) }
+            | false                   { Negation (Disjunction (Predicate pred0) (Negation (Predicate pred0))) }
             | pred                    { Predicate $1 }
             | var                     { Variable $1 }
             | lpar Formula rpar       { $2 }
@@ -60,6 +60,8 @@ Formula3    : true                    { Disjunction (Predicate 0) (Negation (Pre
 {
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
+
+pred0 = Pred 0
 
 --data Exp  
 --      = Let String Exp Exp
