@@ -7,6 +7,8 @@ import Syntax (
     Formula (..),
     Pred, Var)
 
+import Parser (parser)
+
 newtype State = State Int deriving (Show, Eq, Ord)
 
 
@@ -98,9 +100,12 @@ main =
         x = 6
         --y = Var 9
         y = 9
-        myFormula = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
-        myFormula2 = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
-    in do {
-        print $ check myKripkeStructure myFormula;
-        print $ check myKripkeStructure myFormula2;
-    }
+        myFormula = parser "mu v6 . p3 | <>v6"
+        myFormulaExpected = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
+        myFormula2 = parser "mu v9 . p8 | <>v9"
+        myFormula2Expected = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
+    in do
+        print $ check myKripkeStructure myFormula
+        print $ myFormula == myFormulaExpected
+        print $ check myKripkeStructure myFormula2
+        print $ myFormula2 == myFormula2Expected

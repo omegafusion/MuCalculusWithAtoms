@@ -18,7 +18,7 @@ data Formula
       | Negation Formula
       | Diamond Formula
       | Mu Var Formula
-      deriving Show
+      deriving (Show, Eq) -- Syntactic equality only
 
 
 dual :: Formula -> Formula
