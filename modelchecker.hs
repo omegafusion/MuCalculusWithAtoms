@@ -7,12 +7,15 @@ import qualified Data.Set as Set
 import Data.Map (Map, (!))
 import qualified Data.Map as Map
 
+import Syntax (
+    Formula (..),
+    Pred (..),
+    Var (..)) 
+
+import Parser (parser) 
 
 newtype State = State Int deriving (Show, Eq, Ord)
 
-newtype Pred = Pred Int deriving (Show, Eq, Ord)
-
-newtype Var = Var Int deriving (Show, Eq, Ord)
 
 type TransRel = Set (State, State)
 
@@ -20,14 +23,6 @@ type SatRel = Set (State, Pred)
 
 type KripkeModel = (Set State, TransRel, SatRel)
 -- A Kripke model is a triple consisting of a state set, a transition relation and a satisfaction relation
-
-data Formula =
-    Predicate Pred
-    | Variable Var
-    | Disjunction Formula Formula
-    | Negation Formula
-    | Diamond Formula
-    | Mu Var Formula
 
 type Interpretation = Map Var (Set State)
 -- An interpretation is a (partial) function from the variables to the set of states
@@ -91,13 +86,16 @@ main =
         x = Var 6
         y = Var 9
         -- is a state with Pred 3 reachable?
-        myFormula = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
+        myFormula = parser "mu v6 . p3 | <>v6"
+        myFormulaExpected = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
         -- is a state with Pred 8 reachable?
-        myFormula2 = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
+        myFormula2 = parser "mu v9 . p8 | <>v9"
+        myFormula2Expected = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
         -- not Pred 3 and not Pred 8
         myFormula3 = Negation (Disjunction (Predicate a) (Predicate b))
-    in do {
-        print $ check myKripkeStructure myFormula;
-        print $ check myKripkeStructure myFormula2;
+    in do
+        print $ check myKripkeStructure myFormula
+        print $ myFormula == myFormulaExpected
+        print $ check myKripkeStructure myFormula2
+        print $ myFormula2 == myFormula2Expected
         print $ check myKripkeStructure myFormula3;
-    }
