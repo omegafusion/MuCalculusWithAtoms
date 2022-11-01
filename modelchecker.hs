@@ -25,7 +25,7 @@ type KripkeModel = (Set State, TransRel, SatRel)
 -- A Kripke model is a triple consisting of a state set, a transition relation and a satisfaction relation
 
 type Interpretation = Map Var (Set State)
--- An interpretation is a (partial) function from the variables to the set of states
+-- An interpretation is a mapping from the variables to the set of states
 
 
 
@@ -50,10 +50,8 @@ check model formula =
                                 -- we want the states with AT LEAST ONE successor in s
                                 in Set.filter canReach states
                             Mu x p ->
-                                -- we need to do a fixpoint computation
-                                -- start with x = {}}
-                                -- then do x = [[p]]
-                                -- until x isn't changed
+                                -- we need to do a fixpoint computation. start with x = {}
+                                -- then do x = [[p]] until x isn't changed
                                 let initialInterpretation = Map.insert x Set.empty interpretation
                                     computeFixpoint s currentInterpretation =
                                         let t = check' p currentInterpretation in
