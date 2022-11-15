@@ -4,13 +4,19 @@ module Syntax
      Var (..),
      substitute) where
 
+import Prelude ((==), (.), Show, Eq, Ord, Bool, undefined, show, compare)
+import qualified Prelude as P
 
-newtype Pred = Pred Int deriving (Show, Eq, Ord)
+import NLambda (Atom)
+import qualified NLambda as NL
 
-newtype Var = Var Int deriving (Show, Eq, Ord)
+newtype Pred = Pred Atom deriving (Show, Eq, Ord)
+
+newtype Var = Var Atom deriving (Show, Eq, Ord)
 
 data Formula
       = Predicate Pred
+      | Boolean Bool
       | Variable Var
       | Disjunction Formula Formula
       | Negation Formula
@@ -19,6 +25,8 @@ data Formula
       deriving (Show, Eq) -- Syntactic equality only
 
 
+
+-- TODO: Fix dual and substitute. Formula needs to be a NominalType it seems
 dual :: Formula -> Formula
 dual (Disjunction p q) = Negation (Disjunction (Negation p) (Negation q))
 dual (Diamond p) = Negation (Diamond (Negation p))

@@ -7,7 +7,10 @@ module Lexer (
 import Syntax (
   Pred (..),
   Var (..))
+  
+import NLambda (atom)
 }
+
 
 %wrapper "basic"
 
@@ -17,8 +20,8 @@ $alpha = [a-zA-Z]		-- alphabetic characters
 tokens :-
 
   $white+		    ;
-  "p"$digit+    { \s -> TokenPred (Pred $ read (tail s)) }
-  "v"$digit+    { \s -> TokenVar (Var $ read (tail s)) }
+  "p"$alpha+    { \s -> TokenPred (Pred $ atom (tail s)) }
+  "v"$alpha+    { \s -> TokenVar (Var $ atom (tail s)) }
   "("           { \s -> TokenOB }
   ")"           { \s -> TokenCB }
   "~"           { \s -> TokenNeg }

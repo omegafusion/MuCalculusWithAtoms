@@ -50,8 +50,8 @@ Formula2    : not Formula2            { Negation $2 }
             | box Formula2            { Negation (Diamond (Negation $2)) }
             | Formula3                { $1 }
 
-Formula3    : true                    { Disjunction (Predicate pred0) (Negation (Predicate pred0)) }
-            | false                   { Negation (Disjunction (Predicate pred0) (Negation (Predicate pred0))) }
+Formula3    : true                    { Boolean True }
+            | false                   { Boolean False }
             | pred                    { Predicate $1 }
             | var                     { Variable $1 }
             | lpar Formula rpar       { $2 }
@@ -60,8 +60,6 @@ Formula3    : true                    { Disjunction (Predicate pred0) (Negation 
 {
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
-
-pred0 = Pred 0
 
 --data Exp  
 --      = Let String Exp Exp

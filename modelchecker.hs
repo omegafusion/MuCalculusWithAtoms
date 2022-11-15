@@ -1,5 +1,8 @@
 import Prelude hiding (filter, map, not, or, sum)
-import qualified Prelude
+import qualified Prelude as P
+
+import NLambda (atom)
+import qualified NLambda as NL
 
 import Data.Set (Set, union, fromList, difference)
 import qualified Data.Set as Set
@@ -39,13 +42,13 @@ check model formula =
                             Disjunction p q ->
                                 let s = check' p interpretation
                                     t = check' q interpretation
-                                in s `union` t  -- TODO
+                                in s `union` t
                             Negation p ->
                                 let s = check' p interpretation
-                                in states `difference` s  -- TODO
+                                in states `difference` s
                             Diamond p ->
                                 let s = check' p interpretation
-                                    canReach x = Prelude.not $ Set.null $ Set.filter (\y -> (x, y) `elem` trans) s
+                                    canReach x = P.not $ Set.null $ Set.filter (\y -> (x, y) `elem` trans) s
                                 -- s is the states that satisfy p
                                 -- we want the states with AT LEAST ONE successor in s
                                 in Set.filter canReach states
@@ -64,9 +67,13 @@ check model formula =
 main :: IO ()
 main = 
     let myStates :: Set State
-        myStates = fromList $ Prelude.map State [0, 1, 2, 7]
-        myPredicates :: Set Pred
-        myPredicates = fromList $ Prelude.map Pred [3, 4, 5, 8]
+        myStates = fromList $ P.map State [0, 1, 2, 7]
+        a = atom "a"
+        b = atom "b"
+        c = atom "c"
+        d = atom "d"
+        x = atom "x"
+        y = atom "y"
         myTrans :: TransRel
         myTrans = fromList [(State 0, State 1),
                             (State 1, State 2),
@@ -74,26 +81,30 @@ main =
                             (State 0, State 7),
                             (State 7, State 7)]
         mySat :: SatRel
-        mySat = fromList [(State 0, Pred 3),
-                          (State 1, Pred 4),
-                          (State 2, Pred 5),
-                          (State 7, Pred 8)]
+        mySat = fromList [(State 0, Pred a),
+                          (State 1, Pred b),
+                          (State 2, Pred c),
+                          (State 7, Pred d)]
         myKripkeStructure = (myStates, myTrans, mySat)
-        a = Pred 3
-        b = Pred 8
-        x = Var 6
-        y = Var 9
+        pa = Pred a
+        pb = Pred b
+        pc = Pred c
+        pd = Pred d
+        vx = Var x
+        vy = Var y
         -- is a state with Pred 3 reachable?
-        myFormula = parser "mu v6 . p3 | <>v6"
-        myFormulaExpected = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
+        myFormula = parser "mu vx . pa | <>vx"
+        myFormulaExpected = Mu vx (Disjunction (Predicate pa) (Diamond (Variable vx)))
         -- is a state with Pred 8 reachable?
-        myFormula2 = parser "mu v9 . p8 | <>v9"
-        myFormula2Expected = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
+        myFormula2 = parser "mu vy . pd | <>vy"
+        myFormula2Expected = Mu vy (Disjunction (Predicate pd) (Diamond (Variable vy)))
         -- not Pred 3 and not Pred 8
-        myFormula3 = Negation (Disjunction (Predicate a) (Predicate b))
+        myFormula3 = parser "~(pa | pb)"
+        myFormula3Expected = Negation (Disjunction (Predicate pa) (Predicate pb))
     in do
         print $ check myKripkeStructure myFormula
         print $ myFormula == myFormulaExpected
         print $ check myKripkeStructure myFormula2
         print $ myFormula2 == myFormula2Expected
-        print $ check myKripkeStructure myFormula3;
+        print $ check myKripkeStructure myFormula3
+        print $ myFormula3 == myFormula3Expected
