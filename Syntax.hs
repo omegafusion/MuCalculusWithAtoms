@@ -33,8 +33,7 @@ substitute x t =
         sub (Negation p) = Negation (sub p)
         sub (Disjunction p q) = Disjunction (sub p) (sub q)
         sub (Diamond p) = Diamond (sub p)
-        sub (Mu y p) =
-              -- if the variable we're substituting is bound,
-              -- it's not really the same variable
-              if x==y then p else sub p
+        sub (Mu y p) = Mu y (if x==y then p else sub p)
+            -- if the variable we're substituting is bound,
+            -- it's not really the same variable  
     in sub
