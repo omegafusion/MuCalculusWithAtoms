@@ -4,7 +4,6 @@ import qualified Prelude as P
 import NLambda (atom)
 import qualified NLambda as NL
 
-import Data.Set (Set, union, fromList, difference)
 import qualified Data.Set as Set
 
 import Data.Map (Map, (!))
@@ -20,32 +19,32 @@ import Parser (parser)
 newtype State = State Int deriving (Show, Eq, Ord)
 
 
-type TransRel = Set (State, State)
+type TransRel = Set.Set (State, State)
 
-type SatRel = Set (State, Pred)
+type SatRel = Set.Set (State, Pred)
 
-type KripkeModel = (Set State, TransRel, SatRel)
+type KripkeModel = (Set.Set State, TransRel, SatRel)
 -- A Kripke model is a triple consisting of a state set, a transition relation and a satisfaction relation
 
-type Interpretation = Map Var (Set State)
+type Interpretation = Map Var (Set.Set State)
 -- An interpretation is a mapping from the variables to the set of states
 
 
 
-check :: KripkeModel -> Formula -> Set State
+check :: KripkeModel -> Formula -> Set.Set State
 check model formula =
     let (states, trans, sat) = model
-        check' :: Formula -> Interpretation -> Set State
+        check' :: Formula -> Interpretation -> Set.Set State
         check' formula interpretation =
             case formula of Predicate p -> Set.filter (\x -> (x, p) `elem` sat) states
                             Variable v -> interpretation ! v
                             Disjunction p q ->
                                 let s = check' p interpretation
                                     t = check' q interpretation
-                                in s `union` t
+                                in s `Set.union` t
                             Negation p ->
                                 let s = check' p interpretation
-                                in states `difference` s
+                                in states `Set.difference` s
                             Diamond p ->
                                 let s = check' p interpretation
                                     canReach x = P.not $ Set.null $ Set.filter (\y -> (x, y) `elem` trans) s
@@ -66,8 +65,8 @@ check model formula =
 
 main :: IO ()
 main = 
-    let myStates :: Set State
-        myStates = fromList $ P.map State [0, 1, 2, 7]
+    let myStates :: Set.Set State
+        myStates = Set.fromList $ P.map State [0, 1, 2, 7]
         a = atom "a"
         b = atom "b"
         c = atom "c"
@@ -75,13 +74,13 @@ main =
         x = atom "x"
         y = atom "y"
         myTrans :: TransRel
-        myTrans = fromList [(State 0, State 1),
+        myTrans = Set.fromList [(State 0, State 1),
                             (State 1, State 2),
                             (State 2, State 0),
                             (State 0, State 7),
                             (State 7, State 7)]
         mySat :: SatRel
-        mySat = fromList [(State 0, Pred a),
+        mySat = Set.fromList [(State 0, Pred a),
                           (State 1, Pred b),
                           (State 2, Pred c),
                           (State 7, Pred d)]
