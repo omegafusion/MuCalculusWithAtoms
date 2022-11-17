@@ -10,6 +10,8 @@ import Syntax (Formula (..),
                Var (..),
                Pred (..),
                substitute)
+
+import NLambda (atom)
 }
 
 %name calc
@@ -18,7 +20,10 @@ import Syntax (Formula (..),
 
 %token 
       pred        { TokenPred $$ }
-      var         { TokenVar $$ }
+      label       { TokenLabel $$ }
+      atom        { TokenAtom $$ }
+      underscore  { TokenUnderscore }
+      comma       { TokenComma }
       lpar        { TokenOB }
       rpar        { TokenCB }
       not         { TokenNeg }
@@ -37,8 +42,8 @@ import Syntax (Formula (..),
 
 -- TODO: Duals
 
-Formula     : mu var dot Formula      { Mu $2 $4 }
-            | nu var dot Formula      { Negation (Mu $2 (Negation (substitute $2 (Negation (Variable $2)) $4))) }
+Formula     : mu Variable dot Formula { Mu $2 $4 }
+            | nu Variable dot Formula { Negation (Mu $2 (Negation (substitute $2 (Negation (Variable $2)) $4))) }
             | Formula1                { $1 }
 
 Formula1    : Formula2 or Formula1    { Disjunction $1 $3 }
@@ -52,10 +57,17 @@ Formula2    : not Formula2            { Negation $2 }
 
 Formula3    : true                    { Boolean True }
             | false                   { Boolean False }
-            | pred                    { Predicate $1 }
-            | var                     { Variable $1 }
+            | pred                    { Predicate (Pred $1) }
+            | Variable                { Variable $1 }
             | lpar Formula rpar       { $2 }
 
+Variable    : label Atoms             { Var $1 $2 }
+
+Atoms       :                         { [] }
+            | underscore AtomList     { $2 }
+
+AtomList    : atom                    { [$1] }
+            | atom comma AtomList    { $1 : $3 }
 
 {
 parseError :: [Token] -> a

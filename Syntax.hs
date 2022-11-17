@@ -4,7 +4,7 @@ module Syntax
      Var (..),
      substitute) where
 
-import Prelude ((==), (.), Show, Eq, Ord, Bool, undefined, show, compare)
+import Prelude ((==), (.), Show, Eq, Ord, Bool, String, undefined, show, compare)
 import qualified Prelude as P
 
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
@@ -18,7 +18,7 @@ import qualified NLambda as NL
 
 newtype Pred = Pred Atom deriving (Show, Eq, Ord)
 
-newtype Var = Var Atom deriving (Show, Eq, Ord)
+data Var = Var String [Atom] deriving (Show, Eq, Ord)
 
 data Formula
       = Predicate Pred
@@ -46,10 +46,11 @@ instance Nominal Pred where
       foldVariables f acc (Pred a) = foldVariables f acc a
 
 instance Nominal Var where
-      eq (Var x) (Var y) = eq x y   -- TODO: syntactic or semantic equivalence?
+      eq (Var xlabel xatoms) (Var ylabel yatoms) = 
+            NL.fromBool (xlabel == ylabel) /\ eq xatoms yatoms
       variants = variant
-      mapVariables f (Var x) = Var (mapVariables f x)
-      foldVariables f acc (Var a) = foldVariables f acc a
+      mapVariables f (Var lab as) = Var lab (mapVariables f as)
+      foldVariables f acc (Var lab as) = foldVariables f acc as
 
 instance Show (Atom -> Formula) where
       show f = show (makeSet f)

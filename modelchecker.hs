@@ -71,8 +71,6 @@ main =
         b = atom "b"
         c = atom "c"
         d = atom "d"
-        x = atom "x"
-        y = atom "y"
         myTrans :: TransRel
         myTrans = Set.fromList [(State 0, State 1),
                             (State 1, State 2),
@@ -89,8 +87,8 @@ main =
         pb = Pred b
         pc = Pred c
         pd = Pred d
-        vx = Var x
-        vy = Var y
+        vx = Var "x" []
+        vy = Var "y" []
         -- is a state with Pred 3 reachable?
         myFormula = parser "mu vx . pa | <>vx"
         myFormulaExpected = Mu vx (Disjunction (Predicate pa) (Diamond (Variable vx)))

@@ -7,8 +7,8 @@ module Lexer (
 import Syntax (
   Pred (..),
   Var (..))
-  
-import NLambda (atom)
+
+import NLambda (Atom, atom)
 }
 
 
@@ -20,8 +20,10 @@ $alpha = [a-zA-Z]		-- alphabetic characters
 tokens :-
 
   $white+		    ;
-  "p"$alpha+    { \s -> TokenPred (Pred $ atom (tail s)) }
-  "v"$alpha+    { \s -> TokenVar (Var $ atom (tail s)) }
+  "p"$alpha+    { \s -> TokenPred (atom (tail s)) }
+  "v"$alpha+    { \s -> TokenLabel (tail s) }
+  "_"           { \s -> TokenUnderscore }
+  ","           { \s -> TokenComma }
   "("           { \s -> TokenOB }
   ")"           { \s -> TokenCB }
   "~"           { \s -> TokenNeg }
@@ -34,14 +36,18 @@ tokens :-
   mu            { \s -> TokenMu }
   nu            { \s -> TokenNu }
   "."           { \s -> TokenDot }
+  $alpha+       { \s -> TokenAtom (atom s) }
 
 {
 -- Each action has type :: String -> Token
 
 -- The token type:
 data Token 
-      = TokenPred Pred
-      | TokenVar Var 
+      = TokenPred Atom
+      | TokenLabel String
+      | TokenAtom Atom
+      | TokenUnderscore
+      | TokenComma
       | TokenOB      
       | TokenCB      
       | TokenNeg     
