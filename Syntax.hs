@@ -71,7 +71,7 @@ instance Nominal (Atom -> Formula) where
 
 instance Nominal Formula where
       
-      -- Two formulas are equivalent if they are semantically equal. -- TODO: syntactic or semantic equivalence?
+      -- Two formulas are equivalent if they are syntactically equal. -- TODO: syntactic or semantic equivalence?
       eq (Predicate a) (Predicate b) = eq a b
       eq (Variable x) (Variable y) = eq x y
       eq (IndexedDisjunction f) (IndexedDisjunction g) = eq (makeSet f) (makeSet g)
