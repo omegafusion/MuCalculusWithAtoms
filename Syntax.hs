@@ -24,7 +24,7 @@ data Formula
       = Predicate Pred
       | Boolean Bool
       | Variable Var
-      | IndexedDisjunction (Atom -> Formula)
+      | IndexedDisjunction (Set (Atom, Formula))
       | Disjunction Formula Formula
       | Negation Formula
       | Diamond Formula
@@ -32,9 +32,8 @@ data Formula
       deriving (Show, Eq, Ord) -- Syntactic equality only
 
 
-makeSet :: Nominal a => (Atom -> a) -> Set a
-makeSet f = NL.map f atoms
-
+graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
+graphRep f = NL.map (\a -> (a, f a)) atoms
 
 -- Formulas are nominal types since they contain atoms.
 -- This only makes sense if Pred and Var are also nominal types. 
@@ -52,29 +51,12 @@ instance Nominal Var where
       mapVariables f (Var lab as) = Var lab (mapVariables f as)
       foldVariables f acc (Var lab as) = foldVariables f acc as
 
-instance Show (Atom -> Formula) where
-      show f = show (makeSet f)
-
-instance Eq (Atom -> Formula) where
-      f == g = (makeSet f) == (makeSet g)
-
-instance Ord (Atom -> Formula) where
-      -- since Ord is defined on NLambda sets, just use this definition
-      compare f g = compare (makeSet f) (makeSet g)
-
-instance Nominal (Atom -> Formula) where
-
-      eq f g = eq (makeSet f) (makeSet g)
-      variants = variant
-      mapVariables f g = mapVariables f . g
-      foldVariables f acc g = foldVariables f acc (makeSet g)
-
 instance Nominal Formula where
-      
+
       -- Two formulas are equivalent if they are syntactically equal. -- TODO: syntactic or semantic equivalence?
       eq (Predicate a) (Predicate b) = eq a b
       eq (Variable x) (Variable y) = eq x y
-      eq (IndexedDisjunction f) (IndexedDisjunction g) = eq (makeSet f) (makeSet g)
+      eq (IndexedDisjunction f) (IndexedDisjunction g) = eq f g
       eq (Disjunction p q) (Disjunction r s) = eq p r /\ eq q s
       eq (Negation p) (Negation q) = eq p q
       eq (Diamond p) (Diamond q) = eq p q
@@ -86,7 +68,7 @@ instance Nominal Formula where
       mapVariables f formula = case formula of
             Predicate a -> Predicate (mapVariables f a)
             Variable x -> Variable (mapVariables f x)
-            IndexedDisjunction g -> IndexedDisjunction (\a -> mapVariables f (g a))
+            IndexedDisjunction g -> IndexedDisjunction (NL.map (\(a, p) -> (mapVariables f a, mapVariables f p)) g)
             Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
             Negation p -> Negation (mapVariables f p)
             Diamond p -> Diamond (mapVariables f p)
@@ -95,7 +77,7 @@ instance Nominal Formula where
       foldVariables f acc formula = case formula of
             Predicate a -> foldVariables f acc a
             Variable x -> foldVariables f acc x 
-            IndexedDisjunction g -> foldVariables f acc (makeSet g)
+            IndexedDisjunction g -> foldVariables f acc g
             Disjunction p q -> foldVariables f (foldVariables f acc p) q
             Negation p -> foldVariables f acc p
             Diamond p -> foldVariables f acc p
@@ -115,7 +97,7 @@ substitute x t =
               if x==y then t else Variable y
         sub (Predicate a) = Predicate a
         sub (Negation p) = Negation (sub p)
-        sub (IndexedDisjunction f) = IndexedDisjunction (\a -> sub (f a))
+        sub (IndexedDisjunction g) = IndexedDisjunction (NL.map (\(a, p) -> (a, sub p)) g)
         sub (Disjunction p q) = Disjunction (sub p) (sub q)
         sub (Diamond p) = Diamond (sub p)
         sub (Mu y p) = Mu y (if x==y then p else sub p)
