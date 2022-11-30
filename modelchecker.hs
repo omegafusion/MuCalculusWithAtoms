@@ -1,7 +1,7 @@
 import Prelude hiding (filter, map, not, or, sum)
 import qualified Prelude as P
 
-import NLambda (atom)
+import NLambda (Atom, atom)
 import qualified NLambda as NL
 
 import qualified Data.Set as Set
@@ -16,17 +16,17 @@ import Syntax (
 
 import Parser (parser) 
 
-newtype State = State Int deriving (Show, Eq, Ord)
+newtype State = State Atom deriving (Show, Eq, Ord) -- TODO: Make into a set with atoms
 
 
-type TransRel = Set.Set (State, State)
+type TransRel = Set.Set (State, State) -- TODO: Convert to NLambda set
 
-type SatRel = Set.Set (State, Pred)
+type SatRel = Set.Set (State, Pred) -- TODO: Convert to NLambda set
 
-type KripkeModel = (Set.Set State, TransRel, SatRel)
+type KripkeModel = (Set.Set State, TransRel, SatRel) -- TODO: Convert to NLambda set
 -- A Kripke model is a triple consisting of a state set, a transition relation and a satisfaction relation
 
-type Interpretation = Map Var (Set.Set State)
+type Interpretation = Map Var (Set.Set State) -- TODO: Convert to NLambda set
 -- An interpretation is a mapping from the variables to the set of states
 
 
@@ -66,22 +66,22 @@ check model formula =
 main :: IO ()
 main = 
     let myStates :: Set.Set State
-        myStates = Set.fromList $ P.map State [0, 1, 2, 7]
+        myStates = Set.fromList $ P.map State [a, b, c, d]
         a = atom "a"
         b = atom "b"
         c = atom "c"
         d = atom "d"
         myTrans :: TransRel
-        myTrans = Set.fromList [(State 0, State 1),
-                            (State 1, State 2),
-                            (State 2, State 0),
-                            (State 0, State 7),
-                            (State 7, State 7)]
+        myTrans = Set.fromList [(State a, State b),
+                            (State b, State c),
+                            (State c, State a),
+                            (State a, State d),
+                            (State d, State d)]
         mySat :: SatRel
-        mySat = Set.fromList [(State 0, Pred a),
-                          (State 1, Pred b),
-                          (State 2, Pred c),
-                          (State 7, Pred d)]
+        mySat = Set.fromList [(State a, Pred a),
+                          (State b, Pred b),
+                          (State c, Pred c),
+                          (State d, Pred d)]
         myKripkeStructure = (myStates, myTrans, mySat)
         pa = Pred a
         pb = Pred b
@@ -89,13 +89,13 @@ main =
         pd = Pred d
         vx = Var "x" []
         vy = Var "y" []
-        -- is a state with Pred 3 reachable?
+        -- is a state with Pred a reachable?
         myFormula = parser "mu vx . pa | <>vx"
         myFormulaExpected = Mu vx (Disjunction (Predicate pa) (Diamond (Variable vx)))
-        -- is a state with Pred 8 reachable?
+        -- is a state with Pred d reachable?
         myFormula2 = parser "mu vy . pd | <>vy"
         myFormula2Expected = Mu vy (Disjunction (Predicate pd) (Diamond (Variable vy)))
-        -- not Pred 3 and not Pred 8
+        -- not Pred a and not Pred b
         myFormula3 = parser "~(pa | pb)"
         myFormula3Expected = Negation (Disjunction (Predicate pa) (Predicate pb))
     in do
