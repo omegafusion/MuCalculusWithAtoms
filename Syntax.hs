@@ -91,7 +91,7 @@ dual (Diamond p) = Negation (Diamond (Negation p))
 dual (Mu x p) = Negation (Mu x (Negation (substitute x (Negation (Variable x)) p)))
 
 
-alphaconvert :: (Var -> Var) -> Formula -> Formula
+alphaconvert :: Var -> Var -> Formula -> Formula
 alphaconvert x y = substitute x (Variable y) -- TODO: Do something a bit more insightful here maybe
 
 
