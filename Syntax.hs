@@ -36,6 +36,10 @@ freevars formula =
     in fvs [] formula
 
 
+freshFrom :: [Var] -> Var
+freshFrom xs = foldr (\(Var x) (Var y) -> if x>=y then Var (x+1) else Var y) (Var 0) xs
+
+
 substitute :: Var -> Formula -> Formula -> Formula
 substitute x t =
     let sub (Variable y) =
