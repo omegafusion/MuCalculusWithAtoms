@@ -52,7 +52,7 @@ substitute x t =
         sub (Disjunction p q) = Disjunction (sub p) (sub q)
         sub (Diamond p) = Diamond (sub p)
         sub (Mu y p) = if x==y then Mu y p -- x does not occur free in p
-                       else if y `elem` fv then let z = freshFrom fvs in Mu z (sub (substitute y (Variable z) t))
+                       else if y `elem` fv then let z = freshFrom fv in Mu z (sub (substitute y (Variable z) t))
                        else Mu y (sub p)
             -- if the variable we're substituting is bound,
             -- it's not really the same variable  
