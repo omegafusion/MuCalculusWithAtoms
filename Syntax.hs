@@ -25,6 +25,17 @@ dual (Diamond p) = Negation (Diamond (Negation p))
 dual (Mu x p) = Negation (Mu x (Negation (substitute x (Negation (Variable x)) p)))
 
 
+freevars :: Formula -> [Var]
+freevars formula =
+    let fvs xs f = case f of
+                    Predicate p -> []
+                    Variable y -> if (y `elem` xs) then [] else [y]
+                    Disjunction p q -> fvs xs p ++ fvs xs q
+                    Negation p -> fvs xs p
+                    Mu x p -> fvs (x:xs) p
+    in fvs [] formula
+
+
 substitute :: Var -> Formula -> Formula -> Formula
 substitute x t =
     let sub (Variable y) =
