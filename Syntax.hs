@@ -4,7 +4,7 @@ module Syntax
      Var (..),
      substitute) where
 
-import Prelude ((==), (.), Show, Eq, Ord, Bool, String, undefined, show, compare)
+import Prelude ((==), (.), (+), (>=), (++), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, elem, otherwise)
 import qualified Prelude as P
 
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
@@ -18,18 +18,30 @@ import qualified NLambda as NL
 
 newtype Pred = Pred Atom deriving (Show, Eq, Ord)
 
-data Var = Var String [Atom] deriving (Show, Eq, Ord)
+data Var = Var Int [Atom] deriving (Show, Eq, Ord)
 
 data Formula
       = Predicate Pred
       | Boolean Bool
       | Variable Var
-      | IndexedDisjunction (Set (Atom, Formula))
+      | IndexedDisjunction (Atom -> Formula)
       | Disjunction Formula Formula
       | Negation Formula
       | Diamond Formula
       | Mu Var Formula
-      deriving (Show) -- Syntactic equality only
+      deriving (Show, Ord) -- Syntactic equality only
+
+
+instance Eq (Atom -> Formula) where
+    a == b = graphRep a == graphRep b
+
+
+instance Ord (Atom -> Formula) where
+    compare a b = compare (graphRep a) (graphRep b)
+
+
+instance Show (Atom -> Formula) where
+    show = show . graphRep
 
 
 instance Eq Formula where
@@ -37,6 +49,8 @@ instance Eq Formula where
         a == b
     Variable x == Variable y =
         x == y
+    IndexedDisjunction f == IndexedDisjunction f' =
+        f == f'
     Disjunction p q == Disjunction p' q' =
         p == p' && q == q'
     Negation p == Negation p' =
@@ -44,10 +58,11 @@ instance Eq Formula where
     Diamond p == Diamond p' =
         p == p'
     Mu x p == Mu x' p' =
-        let fv = freeVars p ++ freeVars p'
-            y = freshFrom fv
+        let (Var i as) = x 
+            (Var i' as') = x'
+            fv = freeVars p ++ freeVars p'
+            y = freshFrom [] fv --TODO
         in nameswap x y p == nameswap x' y p'
-
 
 
 graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
@@ -59,26 +74,39 @@ graphRep f = NL.map (\a -> (a, f a)) atoms
 instance Nominal Pred where
       eq (Pred a) (Pred b) = eq a b
       variants = variant
-      mapVariables f (Pred a) = Pred (mapVariables f a)
-      foldVariables f acc (Pred a) = foldVariables f acc a
+      mapVariables mvf (Pred a) = Pred (mapVariables mvf a)
+      foldVariables fvf acc (Pred a) = foldVariables fvf acc a
 
 instance Nominal Var where
       eq (Var xlabel xatoms) (Var ylabel yatoms) = 
             NL.fromBool (xlabel == ylabel) /\ eq xatoms yatoms
       variants = variant
-      mapVariables f (Var lab as) = Var lab (mapVariables f as)
-      foldVariables f acc (Var lab as) = foldVariables f acc as
+      mapVariables mvf (Var lab as) = Var lab (mapVariables mvf as)
+      foldVariables fvf acc (Var lab as) = foldVariables fvf acc as
+
+instance Nominal (Atom -> Formula) where
+    eq f g = eq (graphRep f) (graphRep g)
+    variants = variant
+    mapVariables mvf f = \a -> mapVariables mvf (f a)
+    foldVariables fvf acc = foldVariables fvf acc . graphRep
+
 
 instance Nominal Formula where
 
       -- Two formulas are equivalent if they are syntactically equal. -- TODO: syntactic or semantic equivalence?
-      eq (Predicate a) (Predicate b) = eq a b
-      eq (Variable x) (Variable y) = eq x y
-      eq (IndexedDisjunction f) (IndexedDisjunction g) = eq f g
-      eq (Disjunction p q) (Disjunction r s) = eq p r /\ eq q s
-      eq (Negation p) (Negation q) = eq p q
-      eq (Diamond p) (Diamond q) = eq p q
-      eq (Mu x p) (Mu y q) = eq x y /\ eq p q   -- TODO: Do we really need to insist on the same variable?
+      eq (Predicate a) (Predicate b) =
+        eq a b
+      eq (Variable x) (Variable y) =
+        eq x y
+      eq (IndexedDisjunction f) (IndexedDisjunction g) =
+        eq f g
+      eq (Disjunction p q) (Disjunction r s) =
+        eq p r /\ eq q s
+      eq (Negation p) (Negation q) =
+        eq p q
+      eq (Diamond p) (Diamond q) =
+        eq p q
+      eq (Mu x p) (Mu y q) = eq x y /\ eq p q
       eq _ _ = NL.false
 
       variants = variant
@@ -86,7 +114,7 @@ instance Nominal Formula where
       mapVariables f formula = case formula of
             Predicate a -> Predicate (mapVariables f a)
             Variable x -> Variable (mapVariables f x)
-            IndexedDisjunction g -> IndexedDisjunction (NL.map (\(a, p) -> (mapVariables f a, mapVariables f p)) g)
+            IndexedDisjunction g -> IndexedDisjunction (mapVariables f g)
             Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
             Negation p -> Negation (mapVariables f p)
             Diamond p -> Diamond (mapVariables f p)
@@ -118,11 +146,14 @@ freeVars formula =
                     Negation p -> fvs xs p
                     Diamond p -> fvs xs p
                     Mu x p -> fvs (x:xs) p
-    in fvs [] formula
+    in fvs [] formula -- TODO
 
 
-freshFrom :: [Var] -> Var
-freshFrom = foldl (\(Var x) (Var y) -> if x>=y then Var (x+1) else Var y) (Var 0)
+freshFrom :: [Atom] -> [Var] -> Var
+freshFrom as =
+    let sameAtoms (Var _ xs) = (xs==as)
+        makeFresh = P.foldr (\(Var x _) (Var y _) -> if x>=y then Var (x+1) as else Var y as) (Var 0 as)
+    in makeFresh . P.filter sameAtoms
 
 
 nameswap :: Var -> Var -> Formula -> Formula
@@ -138,7 +169,7 @@ nameswap x y formula =
             Disjunction p q -> Disjunction (nameswap x y p) (nameswap x y q)
             Negation p -> Negation (nameswap x y p)
             Diamond p -> Diamond (nameswap x y p)
-            Mu z p -> Mu (ns x y z) (nameswap x y p) 
+            Mu z p -> Mu (ns x y z) (nameswap x y p)
 
 
 substitute :: Var -> Formula -> Formula -> Formula
@@ -148,14 +179,20 @@ substitute x t =
     let fv = freeVars t
         sub (Variable y) =
               if x==y then t else Variable y
-        sub (Predicate a) = Predicate a
-        sub (Negation p) = Negation (sub p)
-        sub (IndexedDisjunction g) = IndexedDisjunction (NL.map (\(a, p) -> (a, sub p)) g)
-        sub (Disjunction p q) = Disjunction (sub p) (sub q)
-        sub (Diamond p) = Diamond (sub p)
-        sub (Mu y p) = if x==y then Mu y p -- x does not occur free in p
-                       else if y `elem` fv then let z = freshFrom fv in Mu z (sub (substitute y (Variable z) t))
-                       else Mu y (sub p)
+        sub (Predicate a) =
+            Predicate a
+        sub (Negation p) =
+            Negation (sub p)
+        sub (IndexedDisjunction g) =
+            IndexedDisjunction (\a -> sub (g a))
+        sub (Disjunction p q) =
+            Disjunction (sub p) (sub q)
+        sub (Diamond p) =
+            Diamond (sub p)
+        sub (Mu y p) =
+            if x==y then Mu y p -- x does not occur free in p
+            else if y `elem` fv then let z = freshFrom [] fv in Mu z (sub (substitute y (Variable z) t)) -- TODO
+            else Mu y (sub p)
             -- if the variable we're substituting is bound,
             -- it's not really the same variable  
     in sub
