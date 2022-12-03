@@ -16,7 +16,25 @@ data Formula
       | Negation Formula
       | Diamond Formula
       | Mu Var Formula
-      deriving (Show, Eq) -- Syntactic equality only
+      deriving (Show) -- Syntactic equality only
+
+
+instance Eq Formula where
+    Predicate a == Predicate b =
+        a == b
+    Variable x == Variable y =
+        x == y
+    Disjunction p q == Disjunction p' q' =
+        p == p' && q == q'
+    Negation p == Negation p' =
+        p == p'
+    Diamond p == Diamond p' =
+        p == p'
+    Mu x p == Mu x' p' =
+        let fv = freeVars p ++ freeVars p'
+            y = freshFrom fv
+        in nameswap x y p == nameswap x' y p'
+
 
 
 dual :: Formula -> Formula
@@ -25,13 +43,14 @@ dual (Diamond p) = Negation (Diamond (Negation p))
 dual (Mu x p) = Negation (Mu x (Negation (substitute x (Negation (Variable x)) p)))
 
 
-freevars :: Formula -> [Var]
-freevars formula =
+freeVars :: Formula -> [Var]
+freeVars formula =
     let fvs xs f = case f of
                     Predicate p -> []
                     Variable y -> if (y `elem` xs) then [] else [y]
                     Disjunction p q -> fvs xs p ++ fvs xs q
                     Negation p -> fvs xs p
+                    Diamond p -> fvs xs p
                     Mu x p -> fvs (x:xs) p
     in fvs [] formula
 
@@ -40,11 +59,27 @@ freshFrom :: [Var] -> Var
 freshFrom xs = foldr (\(Var x) (Var y) -> if x>=y then Var (x+1) else Var y) (Var 0) xs
 
 
+nameswap :: Var -> Var -> Formula -> Formula
+nameswap x y formula =
+    let ns :: Var -> Var -> Var -> Var
+        ns x y z
+            | z == y    = x
+            | z == x    = y
+            | otherwise = z
+    in case formula of
+            Variable z -> Variable (ns x y z)
+            Predicate a -> Predicate a
+            Disjunction p q -> Disjunction (nameswap x y p) (nameswap x y q)
+            Negation p -> Negation (nameswap x y p)
+            Diamond p -> Diamond (nameswap x y p)
+            Mu z p -> Mu (ns x y z) (nameswap x y p) 
+
+
 substitute :: Var -> Formula -> Formula -> Formula
 substitute x t =
     -- might rename bound variables if they appear free in t
     -- find free variables in t
-    let fv = freevars t
+    let fv = freeVars t
         sub (Variable y) =
               if x==y then t else Variable y
         sub (Predicate a) = Predicate a
