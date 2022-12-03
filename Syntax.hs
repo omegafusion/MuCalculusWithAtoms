@@ -56,7 +56,7 @@ freeVars formula =
 
 
 freshFrom :: [Var] -> Var
-freshFrom xs = foldr (\(Var x) (Var y) -> if x>=y then Var (x+1) else Var y) (Var 0) xs
+freshFrom = foldl (\(Var x) (Var y) -> if x>=y then Var (x+1) else Var y) (Var 0)
 
 
 nameswap :: Var -> Var -> Formula -> Formula
