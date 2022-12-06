@@ -61,8 +61,8 @@ instance Eq Formula where
         let (Var i as) = x 
             (Var i' as') = x'
             fv = freeVars p ++ freeVars p'
-            y = freshFrom [] fv --TODO
-        in nameswap x y p == nameswap x' y p'
+            y = freshFrom [] fv
+        in as == as' && nameswap x y p == nameswap x' y p'
 
 
 graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
