@@ -61,7 +61,7 @@ instance Eq Formula where
         let (Var i as) = x 
             (Var i' as') = x'
             fv = freeVars p ++ freeVars p'
-            y = freshFrom [] fv
+            y = freshFrom fv
         in as == as' && nameswap x y p == nameswap x' y p'
 
 
@@ -76,7 +76,7 @@ instance Nominal Pred where
       variants = variant
       mapVariables mvf (Pred a) = Pred (mapVariables mvf a)
       foldVariables fvf acc (Pred a) = foldVariables fvf acc a
-
+as
 instance Nominal Var where
       eq (Var xlabel xatoms) (Var ylabel yatoms) = 
             NL.fromBool (xlabel == ylabel) /\ eq xatoms yatoms
@@ -149,8 +149,8 @@ freeVars formula =
     in fvs [] formula -- TODO
 
 
-freshFrom :: [Atom] -> [Var] -> Var
-freshFrom as vs =
+freshFrom :: [Var] -> Var
+freshFrom vs =
     -- Return an unused variable that INDEXES NO ATOMS
     let newFresh (Var x as) y = if null as && x>=y then x+1 else y
     in Var (foldr newFresh 0 vs) []
@@ -191,7 +191,7 @@ substitute x t =
             Diamond (sub p)
         sub (Mu y p) =
             if x==y then Mu y p -- x does not occur free in p
-            else if y `elem` fv then let z = freshFrom [] fv in Mu z (sub (substitute y (Variable z) t)) -- TODO
+            else if y `elem` fv then let z = freshFrom fv in Mu z (sub (substitute y (Variable z) t)) -- TODO
             else Mu y (sub p)
             -- if the variable we're substituting is bound,
             -- it's not really the same variable  
