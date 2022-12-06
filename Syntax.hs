@@ -4,7 +4,7 @@ module Syntax
      Var (..),
      substitute) where
 
-import Prelude ((==), (.), (+), (>=), (++), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, elem, otherwise)
+import Prelude ((==), (.), (+), (>=), (++), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, elem, otherwise, null, foldr)
 import qualified Prelude as P
 
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
@@ -150,10 +150,10 @@ freeVars formula =
 
 
 freshFrom :: [Atom] -> [Var] -> Var
-freshFrom as =
-    let sameAtoms (Var _ xs) = (xs==as)
-        makeFresh = P.foldr (\(Var x _) (Var y _) -> if x>=y then Var (x+1) as else Var y as) (Var 0 as)
-    in makeFresh . P.filter sameAtoms
+freshFrom as vs =
+    -- Return an unused variable that INDEXES NO ATOMS
+    let newFresh (Var x as) y = if null as && x>=y then x+1 else y
+    in Var (foldr newFresh 0 vs) []
 
 
 nameswap :: Var -> Var -> Formula -> Formula
