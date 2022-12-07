@@ -21,7 +21,7 @@ tokens :-
 
   $white+		    ;
   "p"$alpha+    { \s -> TokenPred (atom (tail s)) }
-  "v"$alpha+    { \s -> TokenLabel (tail s) }
+  "v"$digit+    { \s -> TokenLabel (read (tail s)) }
   "_"           { \s -> TokenUnderscore }
   ","           { \s -> TokenComma }
   "("           { \s -> TokenOB }
@@ -44,7 +44,7 @@ tokens :-
 -- The token type:
 data Token 
       = TokenPred Atom
-      | TokenLabel String
+      | TokenLabel Int
       | TokenAtom Atom
       | TokenUnderscore
       | TokenComma
