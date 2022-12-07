@@ -76,7 +76,7 @@ instance Nominal Pred where
       variants = variant
       mapVariables mvf (Pred a) = Pred (mapVariables mvf a)
       foldVariables fvf acc (Pred a) = foldVariables fvf acc a
-as
+
 instance Nominal Var where
       eq (Var xlabel xatoms) (Var ylabel yatoms) = 
             NL.fromBool (xlabel == ylabel) /\ eq xatoms yatoms
