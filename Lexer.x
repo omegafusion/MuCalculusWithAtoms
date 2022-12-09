@@ -8,7 +8,7 @@ import Syntax (
   Pred (..),
   Var (..))
 
-import NLambda (Atom, atom)
+import NLambda (Atom, atom, constant)
 }
 
 
@@ -20,7 +20,7 @@ $alpha = [a-zA-Z]		-- alphabetic characters
 tokens :-
 
   $white+		    ;
-  "p"$alpha+    { \s -> TokenPred (atom (tail s)) }
+  "p"$digit+    { \s -> TokenPred (atomFromString (tail s)) }
   "v"$digit+    { \s -> TokenLabel (read (tail s)) }
   "_"           { \s -> TokenUnderscore }
   ","           { \s -> TokenComma }
@@ -36,7 +36,7 @@ tokens :-
   mu            { \s -> TokenMu }
   nu            { \s -> TokenNu }
   "."           { \s -> TokenDot }
-  $alpha+       { \s -> TokenAtom (atom s) }
+  $digit+       { \s -> TokenAtom (atomFromString s) }
 
 {
 -- Each action has type :: String -> Token
@@ -61,6 +61,10 @@ data Token
       | TokenNu
       | TokenDot
       deriving (Eq,Show)
+
+
+atomFromString :: String -> Atom
+atomFromString = constant . read
 
 
 lexer :: String -> [Token]
