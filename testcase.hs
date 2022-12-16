@@ -25,23 +25,26 @@ import Parser (parser)
 
 main :: P.IO ()
 main = 
-    let myStates :: NL.Set State
-        myStates = NL.fromList $ P.map State [a, b, c, d]
-        a = constant 0
+    let a = constant 0
         b = constant 1
         c = constant 2
         d = constant 3
+        s0 = State 0 []
+        s1 = State 1 []
+        s2 = State 2 []
+        s3 = State 3 []
+        myStates = NL.fromList [s0, s1, s2, s3]
         myTrans :: TransRel
-        myTrans = NL.fromList [(State a, State b),
-                            (State b, State c),
-                            (State c, State a),
-                            (State a, State d),
-                            (State d, State d)]
+        myTrans = NL.fromList [(s0, s1),
+                               (s1, s2),
+                               (s2, s0),
+                               (s0, s3),
+                               (s3, s3)]
         mySat :: SatRel
-        mySat = NL.fromList [(State a, Pred a),
-                          (State b, Pred b),
-                          (State c, Pred c),
-                          (State d, Pred d)]
+        mySat = NL.fromList [(s0, Pred a),
+                             (s1, Pred b),
+                             (s2, Pred c),
+                             (s3, Pred d)]
         myKripkeStructure = (myStates, myTrans, mySat)
         pa = Pred a
         pb = Pred b

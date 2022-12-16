@@ -8,10 +8,10 @@ module MuModelCheckerAtoms (
 ) where
 
 
-import Prelude hiding (filter, map, not, or, sum)
+import Prelude hiding (filter, map, not, and, or, sum)
 import qualified Prelude as P
 
-import NLambda (Atom, Nominal, atom, eq, variant, mapVariables, foldVariables)
+import NLambda (Atom, Nominal, atom, eq, (/\), fromBool, variant, mapVariables, foldVariables)
 import qualified NLambda as NL
 
 import qualified Data.Set as Set
@@ -26,13 +26,13 @@ import Syntax (
 
 import Parser (parser) 
 
-newtype State = State Atom deriving (Show, Eq, Ord) -- TODO: Make into a set with atoms
+data State = State Int [Atom] deriving (Show, Eq, Ord) -- TODO: Make into a set with atoms
 
 instance Nominal State where
-    eq (State a) (State b) = eq a b
+    eq (State i as) (State i' as') = i `eq` i' /\ as `eq` as'
     variants = variant
-    mapVariables mvf (State a) = State (mapVariables mvf a)
-    foldVariables fvf acc (State a) = foldVariables fvf acc a
+    mapVariables mvf (State i as) = State i (mapVariables mvf as)
+    foldVariables fvf acc (State i as) = foldVariables fvf acc as
 
 
 type TransRel = NL.Set (State, State) -- TODO: Convert to NLambda set
