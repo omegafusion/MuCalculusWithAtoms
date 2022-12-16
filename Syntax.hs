@@ -24,7 +24,7 @@ data Formula
       = Predicate Pred
       | Boolean Bool
       | Variable Var
-      | IndexedDisjunction (Atom -> Formula)
+      | IndexedDisjunction (Set (Atom, Formula))
       | Disjunction Formula Formula
       | Negation Formula
       | Diamond Formula
@@ -32,16 +32,16 @@ data Formula
       deriving (Show, Ord) -- Syntactic equality only
 
 
-instance Eq (Atom -> Formula) where
-    a == b = graphRep a == graphRep b
+--instance Eq (Atom -> Formula) where
+--    a == b = graphRep a == graphRep b
 
 
-instance Ord (Atom -> Formula) where
-    compare a b = compare (graphRep a) (graphRep b)
+--instance Ord (Atom -> Formula) where
+--    compare a b = compare (graphRep a) (graphRep b)
 
 
-instance Show (Atom -> Formula) where
-    show = show . graphRep
+--instance Show (Atom -> Formula) where
+--    show = show . graphRep
 
 
 instance Eq Formula where
@@ -49,8 +49,8 @@ instance Eq Formula where
         a == b
     Variable x == Variable y =
         x == y
-    IndexedDisjunction f == IndexedDisjunction f' =
-        f == f'
+    IndexedDisjunction s == IndexedDisjunction s' =
+        s == s'
     Disjunction p q == Disjunction p' q' =
         p == p' && q == q'
     Negation p == Negation p' =
@@ -84,11 +84,11 @@ instance Nominal Var where
       mapVariables mvf (Var lab as) = Var lab (mapVariables mvf as)
       foldVariables fvf acc (Var lab as) = foldVariables fvf acc as
 
-instance Nominal (Atom -> Formula) where
-    eq f g = eq (graphRep f) (graphRep g)
-    variants = variant
-    mapVariables mvf f = \a -> mapVariables mvf (f a)
-    foldVariables fvf acc = foldVariables fvf acc . graphRep
+--instance Nominal (Atom -> Formula) where
+--    eq f g = eq (graphRep f) (graphRep g)
+--    variants = variant
+--    mapVariables mvf f = \a -> mapVariables mvf (f a)
+--    foldVariables fvf acc = foldVariables fvf acc . graphRep
 
 
 instance Nominal Formula where
@@ -114,7 +114,7 @@ instance Nominal Formula where
       mapVariables f formula = case formula of
             Predicate a -> Predicate (mapVariables f a)
             Variable x -> Variable (mapVariables f x)
-            IndexedDisjunction g -> IndexedDisjunction (mapVariables f g)
+            IndexedDisjunction s -> IndexedDisjunction (mapVariables f s)
             Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
             Negation p -> Negation (mapVariables f p)
             Diamond p -> Diamond (mapVariables f p)
@@ -123,7 +123,7 @@ instance Nominal Formula where
       foldVariables f acc formula = case formula of
             Predicate a -> foldVariables f acc a
             Variable x -> foldVariables f acc x 
-            IndexedDisjunction g -> foldVariables f acc g
+            IndexedDisjunction s -> foldVariables f acc s
             Disjunction p q -> foldVariables f (foldVariables f acc p) q
             Negation p -> foldVariables f acc p
             Diamond p -> foldVariables f acc p
@@ -183,8 +183,8 @@ substitute x t =
             Predicate a
         sub (Negation p) =
             Negation (sub p)
-        sub (IndexedDisjunction g) =
-            IndexedDisjunction (\a -> sub (g a))
+        sub (IndexedDisjunction s) =
+            IndexedDisjunction (NL.map (\(a, p) -> (a, sub p)) s)
         sub (Disjunction p q) =
             Disjunction (sub p) (sub q)
         sub (Diamond p) =
