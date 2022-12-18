@@ -58,6 +58,8 @@ check model formula =
                                 let s = check' p interpretation
                                     t = check' q interpretation
                                 in s `NL.union` t
+                            IndexedDisjunction s ->
+                                NL.sum (NL.map (\(a, p) -> check' p interpretation) s)
                             Negation p ->
                                 let s = check' p interpretation
                                 in states `NL.difference` s
