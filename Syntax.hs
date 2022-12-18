@@ -2,7 +2,8 @@ module Syntax
     (Formula (..),
      Pred (..),
      Var (..),
-     substitute) where
+     substitute,
+     graphRep) where
 
 import Prelude ((==), (.), (+), (>=), (++), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, elem, otherwise, null, foldr)
 import qualified Prelude as P
