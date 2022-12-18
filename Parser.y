@@ -20,7 +20,7 @@ import NLambda (atom)
 
 %token 
       pred        { TokenPred $$ }
-      label       { TokenLabel $$ }
+      var         { TokenVar $$ }
       atom        { TokenAtom $$ }
       underscore  { TokenUnderscore }
       comma       { TokenComma }
@@ -57,17 +57,19 @@ Formula2    : not Formula2            { Negation $2 }
 
 Formula3    : true                    { Boolean True }
             | false                   { Boolean False }
-            | pred                    { Predicate (Pred $1) }
+            | Predicate               { Predicate $1 }
             | Variable                { Variable $1 }
             | lpar Formula rpar       { $2 }
 
-Variable    : label Atoms             { Var $1 $2 }
+Predicate   : pred Atoms              { Pred $1 $2 }
+
+Variable    : var Atoms               { Var $1 $2 }
 
 Atoms       :                         { [] }
             | underscore AtomList     { $2 }
 
 AtomList    : atom                    { [$1] }
-            | atom comma AtomList    { $1 : $3 }
+            | atom comma AtomList     { $1 : $3 }
 
 {
 parseError :: [Token] -> a

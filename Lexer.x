@@ -20,8 +20,8 @@ $alpha = [a-zA-Z]		-- alphabetic characters
 tokens :-
 
   $white+		    ;
-  "p"$digit+    { \s -> TokenPred (atomFromString (tail s)) }
-  "v"$digit+    { \s -> TokenLabel (read (tail s)) }
+  "p"$digit+    { \s -> TokenPred (read (tail s)) }
+  "v"$digit+    { \s -> TokenVar (read (tail s)) }
   "_"           { \s -> TokenUnderscore }
   ","           { \s -> TokenComma }
   "("           { \s -> TokenOB }
@@ -43,8 +43,8 @@ tokens :-
 
 -- The token type:
 data Token 
-      = TokenPred Atom
-      | TokenLabel Int
+      = TokenPred Int
+      | TokenVar Int
       | TokenAtom Atom
       | TokenUnderscore
       | TokenComma

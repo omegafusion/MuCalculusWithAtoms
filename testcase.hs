@@ -33,6 +33,10 @@ main =
         s1 = State 1 []
         s2 = State 2 []
         s3 = State 3 []
+        pa = Pred 0 [a]
+        pb = Pred 0 [b]
+        pc = Pred 0 [c]
+        pd = Pred 0 [d]
         myStates = NL.fromList [s0, s1, s2, s3]
         myTrans :: TransRel
         myTrans = NL.fromList [(s0, s1),
@@ -41,25 +45,21 @@ main =
                                (s0, s3),
                                (s3, s3)]
         mySat :: SatRel
-        mySat = NL.fromList [(s0, Pred a),
-                             (s1, Pred b),
-                             (s2, Pred c),
-                             (s3, Pred d)]
+        mySat = NL.fromList [(s0, pa),
+                             (s1, pb),
+                             (s2, pc),
+                             (s3, pd)]
         myKripkeStructure = (myStates, myTrans, mySat)
-        pa = Pred a
-        pb = Pred b
-        pc = Pred c
-        pd = Pred d
         vx = Var 0 []
         vy = Var 1 []
         -- is a state with Pred a reachable?
-        myFormula = parser "mu v0 . p0 | <>v0"
+        myFormula = parser "mu v0 . p0_0 | <>v0"
         myFormulaExpected = Mu vx (Disjunction (Predicate pa) (Diamond (Variable vx)))
         -- is a state with Pred d reachable?
-        myFormula2 = parser "mu v1 . p3 | <>v1"
+        myFormula2 = parser "mu v1 . p0_3 | <>v1"
         myFormula2Expected = Mu vy (Disjunction (Predicate pd) (Diamond (Variable vy)))
         -- not Pred a and not Pred b
-        myFormula3 = parser "~(p0 | p1)"
+        myFormula3 = parser "~(p0_0 | p0_1)"
         myFormula3Expected = Negation (Disjunction (Predicate pa) (Predicate pb))
     in do
         print $ check myKripkeStructure myFormula   -- [a, b, c]
