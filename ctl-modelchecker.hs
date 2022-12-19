@@ -10,8 +10,7 @@ import Data.Foldable (toList)
 import Data.Maybe (listToMaybe)
 
 import CTLSyntax (
-    StateFormula (..),
-    PathFormula (..),
+    Formula (..),
     Pred (..))
 
 newtype State = State Int deriving (Show, Eq, Ord)
@@ -34,7 +33,7 @@ fix :: Eq a => (a -> a) -> a -> a
 fix f v = if f v == v then v else fix f (f v)
 
 
-check :: KripkeModel -> StateFormula -> Set.Set State
+check :: KripkeModel -> Formula -> Set.Set State
 check model formula = 
     let (states, trans, sat) = model
         checkExistsNext :: Set.Set State -> Set.Set State
@@ -49,7 +48,7 @@ check model formula =
         checkExistsGlobally s =
             let f v = s `Set.intersection` checkExistsNext v -- the largest fixed point of this function
             in fix f states
-        check' :: StateFormula -> Set.Set State
+        check' :: Formula -> Set.Set State
         check' sf = case sf of
             True -> states
             Predicate p -> Set.filter (\x -> (x, p) `elem` sat) states
@@ -60,14 +59,14 @@ check model formula =
             Negation p -> 
                 let s = check' p
                 in states `Set.difference` s
-            Exists (Next p) ->
+            ExistsNext p ->
                 let s = check' p
                 in checkExistsNext s
-            Exists (Until p q) ->
+            ExistsUntil p q ->
                 let s = check' p
                     t = check' q
                 in checkExistsUntil s t
-            Exists (Globally p) ->
+            ExistsGlobally p ->
                 let s = check' p 
                 in checkExistsGlobally s
     in check' formula
@@ -78,7 +77,7 @@ main = let states = Set.fromList [State 0, State 1, State 2]
            transRel = Set.fromList [(State 0, State 1), (State 1, State 2)]
            satRel = Set.fromList [(State 0, Pred 0), (State 1, Pred 1), (State 2, Pred 2), (State 0, Pred 3), (State 1, Pred 3), (State 2, Pred 4)]
            ks = (states, transRel, satRel)
-           f = Exists (Until (Predicate (Pred 0)) (Predicate (Pred 2)))
-           g = Exists (Until (Predicate (Pred 3)) (Predicate (Pred 4)))
+           f = ExistsUntil (Predicate (Pred 0)) (Predicate (Pred 2))
+           g = ExistsUntil (Predicate (Pred 3)) (Predicate (Pred 4))
        in do print $ check ks f;
              print $ check ks g;

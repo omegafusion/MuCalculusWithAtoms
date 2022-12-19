@@ -1,6 +1,5 @@
 module CTLSyntax (
-    StateFormula (..),
-    PathFormula (..),
+    Formula (..),
     Pred (..)
 ) where
 
@@ -8,16 +7,12 @@ module CTLSyntax (
 newtype Pred = Pred Int deriving (Show, Eq, Ord)
 
 
-data StateFormula
+data Formula
     = True
     | Predicate Pred
-    | Conjunction StateFormula StateFormula
-    | Negation StateFormula
-    | Exists PathFormula
-    deriving (Eq, Ord, Show)
-
-data PathFormula
-    = Next StateFormula
-    | Until StateFormula StateFormula
-    | Globally StateFormula
+    | Conjunction Formula Formula
+    | Negation Formula
+    | ExistsNext Formula
+    | ExistsUntil Formula Formula
+    | ExistsGlobally Formula
     deriving (Eq, Ord, Show)
