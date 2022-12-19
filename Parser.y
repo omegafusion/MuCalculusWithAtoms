@@ -44,32 +44,32 @@ import NLambda (atom)
 
 Formula     : mu Variable dot Formula { \a -> Mu ($2 a) ($4 a) }
             | nu Variable dot Formula { \a -> Negation (Mu ($2 a) (Negation (substitute ($2 a) (Negation (Variable ($2 a))) ($4 a)))) }
-            | Formula1                { \a -> $1 a }
+            | Formula1                { $1 }
 
 Formula1    : Formula2 or Formula1    { \a -> Disjunction ($1 a) ($3 a) }
             | Formula2 and Formula1   { \a -> Negation (Disjunction (Negation ($1 a)) (Negation ($3 a))) }
-            | Formula2                { \a -> $1 a }
+            | Formula2                { $1 }
 
-Formula2    : not Formula2            { \a -> Negation ($2 a) }
-            | dia Formula2            { \a -> Diamond ($2 a) }
-            | box Formula2            { \a -> Negation (Diamond (Negation ($2 a))) }
-            | Formula3                { \a -> $1 a }
+Formula2    : not Formula2            { Negation . $2 }
+            | dia Formula2            { Diamond . $2 }
+            | box Formula2            { Negation . Diamond . Negation . $2 }
+            | Formula3                { $1 }
 
-Formula3    : true                    { \a -> Boolean True }
-            | false                   { \a -> Boolean False }
-            | Predicate               { \a -> Predicate ($1 a) }
-            | Variable                { \a -> Variable ($1 a) }
-            | lpar Formula rpar       { \a -> $2 a }
+Formula3    : true                    { const (Boolean True) }
+            | false                   { const (Boolean False) }
+            | Predicate               { Predicate . $1 }
+            | Variable                { Variable . $1 }
+            | lpar Formula rpar       { $2 }
 
-Predicate   : pred Atoms              { \a -> (Pred $1 ($2 a)) }
+Predicate   : pred Atoms              { (Pred $1) . $2 }
 
-Variable    : var Atoms               { \a -> (Var $1 ($2 a)) }
+Variable    : var Atoms               { (Var $1) . $2 }
 
-Atoms       :                         { \a -> [] }
+Atoms       :                         { const [] }
             | underscore AtomList     { $2 }
 
-AtomList    : atom                    { \a -> [$1] }
-            | atom comma AtomList     { \a -> $1 : ($3 a) }
+AtomList    : atom                    { const [$1] }
+            | atom comma AtomList     { ($1:) . $3 }
 
 {
 parseError :: [Token] -> a
