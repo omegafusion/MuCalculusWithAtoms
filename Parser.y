@@ -4,12 +4,15 @@ module Parser (parser) where
 
 import Data.Char (isDigit, isAlpha, isSpace)
 
+import Data.Map ((!), empty, insert)
+
 import Lexer (Token (..),
               lexer)
 import Syntax (Formula (..),
                Var (..),
                Pred (..),
-               substitute)
+               substitute,
+               graphRep)
 
 import NLambda (atom)
 }
@@ -22,7 +25,8 @@ import NLambda (atom)
       pred        { TokenPred $$ }
       var         { TokenVar $$ }
       atom        { TokenAtom $$ }
-      underscore  { TokenUnderscore }
+      mvar        { TokenMVar $$ }
+      under       { TokenUnderscore }
       comma       { TokenComma }
       lpar        { TokenOB }
       rpar        { TokenCB }
@@ -42,100 +46,45 @@ import NLambda (atom)
 
 -- TODO: Duals
 
-Formula     : mu Variable dot Formula { Mu $2 $4 }
-            | nu Variable dot Formula { Negation (Mu $2 (Negation (substitute $2 (Negation (Variable $2)) $4))) }
+Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
+            | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) (Negation $ substitute ($2 r) (Negation $ Variable ($2 r)) ($4 r)) }
+            | or under mvar dot Formula { \r -> IndexedDisjunction $ graphRep $ \a -> $5 (insert $3 a r) }
             | Formula1                { $1 }
 
-Formula1    : Formula2 or Formula1    { Disjunction $1 $3 }
-            | Formula2 and Formula1   { Negation (Disjunction (Negation $1) (Negation $3)) }
+Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
+            | Formula2 and Formula1   { \r -> Negation $ Disjunction (Negation ($1 r)) (Negation ($3 r)) }
             | Formula2                { $1 }
 
-Formula2    : not Formula2            { Negation $2 }
-            | dia Formula2            { Diamond $2 }
-            | box Formula2            { Negation (Diamond (Negation $2)) }
+Formula2    : not Formula2            { Negation . $2 }
+            | dia Formula2            { Diamond . $2 }
+            | box Formula2            { Negation . Diamond . Negation . $2 }
             | Formula3                { $1 }
 
-Formula3    : true                    { Boolean True }
-            | false                   { Boolean False }
-            | Predicate               { Predicate $1 }
-            | Variable                { Variable $1 }
+Formula3    : true                    { const $ Boolean True }
+            | false                   { const $ Boolean False }
+            | Predicate               { Predicate . $1 }
+            | Variable                { Variable . $1 }
             | lpar Formula rpar       { $2 }
 
-Predicate   : pred Atoms              { Pred $1 $2 }
+Predicate   : pred Atoms              { Pred $1 . $2 }
 
-Variable    : var Atoms               { Var $1 $2 }
+Variable    : var Atoms               { Var $1 . $2 }
 
-Atoms       :                         { [] }
-            | underscore AtomList     { $2 }
+Atoms       :                         { const [] }
+            | under AtomList          { $2 }
 
-AtomList    : atom                    { [$1] }
-            | atom comma AtomList     { $1 : $3 }
+AtomList    : Atom                    { \r -> [$1 r] }
+            | Atom comma AtomList     { \r -> ($1 r) : ($3 r) }
+
+Atom        : atom                    { const $1 }
+            | mvar                    { (! $1) }
 
 {
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
---data Exp  
---      = Let String Exp Exp
---      | Exp1 Exp1
---      deriving Show
---
---data Exp1 
---      = Plus Exp1 Term 
---      | Minus Exp1 Term 
---      | Term Term
---      deriving Show
---
---data Term 
---      = Times Term Factor 
---      | Div Term Factor 
---      | Factor Factor
---      deriving Show
---
---data Factor 
---      = Int Int 
---      | Var String 
---      | Brack Exp
---      deriving Show
-
---data Token
---      = TokenLet
---      | TokenIn
---      | TokenInt Int
---      | TokenVar String
---      | TokenEq
---      | TokenPlus
---      | TokenMinus
---      | TokenTimes
---      | TokenDiv
---      | TokenOB
---      | TokenCB
--- deriving Show
-
---lexer [] = []
---lexer (c:cs) 
---      | isSpace c = lexer cs
---      | isAlpha c = lexVar (c:cs)
---      | isDigit c = lexNum (c:cs)
---lexer ('=':cs) = TokenEq : lexer cs
---lexer ('+':cs) = TokenPlus : lexer cs
---lexer ('-':cs) = TokenMinus : lexer cs
---lexer ('*':cs) = TokenTimes : lexer cs
---lexer ('/':cs) = TokenDiv : lexer cs
---lexer ('(':cs) = TokenOB : lexer cs
---lexer (')':cs) = TokenCB : lexer cs
-
---lexNum cs = TokenInt (read num) : lexer rest
---      where (num,rest) = span isDigit cs
---
---lexVar cs =
---   case span isAlpha cs of
---      ("let",rest) -> TokenLet : lexer rest
---      ("in",rest)  -> TokenIn : lexer rest
---      (var,rest)   -> TokenVar var : lexer rest
-
 parser :: String -> Formula
-parser = calc . lexer
+parser xs = calc (lexer xs) empty
 
-main = getContents >>= print . calc . lexer
+--main = getContents >>= print . calc . lexer
 }

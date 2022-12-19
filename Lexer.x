@@ -37,6 +37,7 @@ tokens :-
   nu            { \s -> TokenNu }
   "."           { \s -> TokenDot }
   $digit+       { \s -> TokenAtom (atomFromString s) }
+  $alpha+       { \s -> TokenMVar s }
 
 {
 -- Each action has type :: String -> Token
@@ -46,6 +47,7 @@ data Token
       = TokenPred Int
       | TokenVar Int
       | TokenAtom Atom
+      | TokenMVar String
       | TokenUnderscore
       | TokenComma
       | TokenOB      
