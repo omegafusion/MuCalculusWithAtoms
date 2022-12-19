@@ -4,12 +4,15 @@ module Parser (parser) where
 
 import Data.Char (isDigit, isAlpha, isSpace)
 
+import Data.Map ((!), empty, insert)
+
 import Lexer (Token (..),
               lexer)
 import Syntax (Formula (..),
                Var (..),
                Pred (..),
-               substitute)
+               substitute,
+               graphRep)
 
 import NLambda (atom)
 }
@@ -22,6 +25,7 @@ import NLambda (atom)
       pred        { TokenPred $$ }
       var         { TokenVar $$ }
       atom        { TokenAtom $$ }
+      placeholder { TokenPlaceholder $$ }
       underscore  { TokenUnderscore }
       comma       { TokenComma }
       lpar        { TokenOB }
@@ -42,12 +46,13 @@ import NLambda (atom)
 
 -- TODO: Duals
 
-Formula     : mu Variable dot Formula { \a -> Mu ($2 a) ($4 a) }
-            | nu Variable dot Formula { \a -> Negation (Mu ($2 a) (Negation (substitute ($2 a) (Negation (Variable ($2 a))) ($4 a)))) }
+Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
+            | nu Variable dot Formula { \r -> Negation (Mu ($2 r) (Negation (substitute ($2 r) (Negation (Variable ($2 r))) ($4 r)))) }
+            | or underscore placeholder dot Formula { \r -> IndexedDisjunction (graphRep (\a -> $5 (insert $3 a r))) }
             | Formula1                { $1 }
 
-Formula1    : Formula2 or Formula1    { \a -> Disjunction ($1 a) ($3 a) }
-            | Formula2 and Formula1   { \a -> Negation (Disjunction (Negation ($1 a)) (Negation ($3 a))) }
+Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
+            | Formula2 and Formula1   { \r -> Negation (Disjunction (Negation ($1 r)) (Negation ($3 r))) }
             | Formula2                { $1 }
 
 Formula2    : not Formula2            { Negation . $2 }
@@ -68,8 +73,11 @@ Variable    : var Atoms               { (Var $1) . $2 }
 Atoms       :                         { const [] }
             | underscore AtomList     { $2 }
 
-AtomList    : atom                    { const [$1] }
-            | atom comma AtomList     { ($1:) . $3 }
+AtomList    : Atom                    { \r -> [$1 r] }
+            | Atom comma AtomList     { \r -> ($1 r) : ($3 r) }
+
+Atom        : atom                    { const $1 }
+            | placeholder             { \r -> r ! $1 }
 
 {
 parseError :: [Token] -> a
@@ -127,7 +135,7 @@ parseError _ = error "Parse error"
 
 --lexNum cs = TokenInt (read num) : lexer rest
 --      where (num,rest) = span isDigit cs
---
+--(atom "aaa")
 --lexVar cs =
 --   case span isAlpha cs of
 --      ("let",rest) -> TokenLet : lexer rest
@@ -135,7 +143,7 @@ parseError _ = error "Parse error"
 --      (var,rest)   -> TokenVar var : lexer rest
 
 parser :: String -> Formula
-parser xs = calc (lexer xs) undefined
+parser xs = calc (lexer xs) empty
 
 --main = getContents >>= print . calc . lexer
 }
