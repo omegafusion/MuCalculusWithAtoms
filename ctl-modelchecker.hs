@@ -9,25 +9,12 @@ import qualified Data.Map as Map
 import Data.Foldable (toList)
 import Data.Maybe (listToMaybe)
 
-import Syntax (
+import CTLSyntax (
+    StateFormula (..),
+    PathFormula (..),
     Pred (..))
 
-
-data StateFormula
-    = True
-    | Predicate Pred
-    | Conjunction StateFormula StateFormula
-    | Negation StateFormula
-    | Exists PathFormula
-
-data PathFormula
-    = Next StateFormula
-    | Until StateFormula StateFormula
-    | Globally StateFormula
-
-
 newtype State = State Int deriving (Show, Eq, Ord)
-
 
 type TransRel = Set.Set (State, State)
 
@@ -43,10 +30,7 @@ post tr s =
     in Set.map snd transitions
 
 
-getAny :: Foldable f => f a -> Maybe a
-getAny = listToMaybe . toList
-
-
+fix :: Eq a => (a -> a) -> a -> a
 fix f v = if f v == v then v else fix f (f v)
 
 
