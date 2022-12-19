@@ -25,8 +25,8 @@ import NLambda (atom)
       pred        { TokenPred $$ }
       var         { TokenVar $$ }
       atom        { TokenAtom $$ }
-      placeholder { TokenPlaceholder $$ }
-      underscore  { TokenUnderscore }
+      mvar        { TokenMVar $$ }
+      under       { TokenUnderscore }
       comma       { TokenComma }
       lpar        { TokenOB }
       rpar        { TokenCB }
@@ -48,7 +48,7 @@ import NLambda (atom)
 
 Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
             | nu Variable dot Formula { \r -> Negation (Mu ($2 r) (Negation (substitute ($2 r) (Negation (Variable ($2 r))) ($4 r)))) }
-            | or underscore placeholder dot Formula { \r -> IndexedDisjunction (graphRep (\a -> $5 (insert $3 a r))) }
+            | or under mvar dot Formula { \r -> IndexedDisjunction (graphRep (\a -> $5 (insert $3 a r))) }
             | Formula1                { $1 }
 
 Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
@@ -71,13 +71,13 @@ Predicate   : pred Atoms              { (Pred $1) . $2 }
 Variable    : var Atoms               { (Var $1) . $2 }
 
 Atoms       :                         { const [] }
-            | underscore AtomList     { $2 }
+            | under AtomList          { $2 }
 
 AtomList    : Atom                    { \r -> [$1 r] }
             | Atom comma AtomList     { \r -> ($1 r) : ($3 r) }
 
 Atom        : atom                    { const $1 }
-            | placeholder             { \r -> r ! $1 }
+            | mvar                    { \r -> r ! $1 }
 
 {
 parseError :: [Token] -> a
