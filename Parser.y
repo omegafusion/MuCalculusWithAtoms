@@ -42,34 +42,34 @@ import NLambda (atom)
 
 -- TODO: Duals
 
-Formula     : mu Variable dot Formula { Mu $2 $4 }
-            | nu Variable dot Formula { Negation (Mu $2 (Negation (substitute $2 (Negation (Variable $2)) $4))) }
-            | Formula1                { $1 }
+Formula     : mu Variable dot Formula { \a -> Mu ($2 a) ($4 a) }
+            | nu Variable dot Formula { \a -> Negation (Mu ($2 a) (Negation (substitute ($2 a) (Negation (Variable ($2 a))) ($4 a)))) }
+            | Formula1                { \a -> $1 a }
 
-Formula1    : Formula2 or Formula1    { Disjunction $1 $3 }
-            | Formula2 and Formula1   { Negation (Disjunction (Negation $1) (Negation $3)) }
-            | Formula2                { $1 }
+Formula1    : Formula2 or Formula1    { \a -> Disjunction ($1 a) ($3 a) }
+            | Formula2 and Formula1   { \a -> Negation (Disjunction (Negation ($1 a)) (Negation ($3 a))) }
+            | Formula2                { \a -> $1 a }
 
-Formula2    : not Formula2            { Negation $2 }
-            | dia Formula2            { Diamond $2 }
-            | box Formula2            { Negation (Diamond (Negation $2)) }
-            | Formula3                { $1 }
+Formula2    : not Formula2            { \a -> Negation ($2 a) }
+            | dia Formula2            { \a -> Diamond ($2 a) }
+            | box Formula2            { \a -> Negation (Diamond (Negation ($2 a))) }
+            | Formula3                { \a -> $1 a }
 
-Formula3    : true                    { Boolean True }
-            | false                   { Boolean False }
-            | Predicate               { Predicate $1 }
-            | Variable                { Variable $1 }
-            | lpar Formula rpar       { $2 }
+Formula3    : true                    { \a -> Boolean True }
+            | false                   { \a -> Boolean False }
+            | Predicate               { \a -> Predicate ($1 a) }
+            | Variable                { \a -> Variable ($1 a) }
+            | lpar Formula rpar       { \a -> $2 a }
 
-Predicate   : pred Atoms              { Pred $1 $2 }
+Predicate   : pred Atoms              { \a -> (Pred $1 ($2 a)) }
 
-Variable    : var Atoms               { Var $1 $2 }
+Variable    : var Atoms               { \a -> (Var $1 ($2 a)) }
 
-Atoms       :                         { [] }
+Atoms       :                         { \a -> [] }
             | underscore AtomList     { $2 }
 
-AtomList    : atom                    { [$1] }
-            | atom comma AtomList     { $1 : $3 }
+AtomList    : atom                    { \a -> [$1] }
+            | atom comma AtomList     { \a -> $1 : ($3 a) }
 
 {
 parseError :: [Token] -> a
@@ -135,7 +135,7 @@ parseError _ = error "Parse error"
 --      (var,rest)   -> TokenVar var : lexer rest
 
 parser :: String -> Formula
-parser = calc . lexer
+parser xs = calc (lexer xs) undefined
 
-main = getContents >>= print . calc . lexer
+--main = getContents >>= print . calc . lexer
 }
