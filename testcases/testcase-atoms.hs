@@ -12,7 +12,7 @@ import MuModelCheckerAtoms (
     KripkeModel,
     check)
 
-import Syntax (
+import MuSyntax (
     Formula (..),
     Pred (..),
     Var (..))

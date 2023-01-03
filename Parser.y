@@ -8,7 +8,7 @@ import Data.Map ((!), empty, insert)
 
 import Lexer (Token (..),
               lexer)
-import Syntax (Formula (..),
+import MuSyntax (Formula (..),
                Var (..),
                Pred (..),
                substitute,

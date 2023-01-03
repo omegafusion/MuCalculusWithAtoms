@@ -4,7 +4,7 @@ module Lexer (
   lexer
 ) where
 
-import Syntax (
+import MuSyntax (
   Pred (..),
   Var (..))
 

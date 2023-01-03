@@ -17,7 +17,7 @@ import qualified NLambda as NL
 import Data.Map (Map, (!))
 import qualified Data.Map as Map
 
-import Syntax (
+import MuSyntax (
     Formula (..),
     Pred (..),
     Var (..)) 

@@ -14,7 +14,7 @@ import MuModelCheckerAtoms (
     check)
 
 
-import Syntax (
+import MuSyntax (
     Formula (..),
     Pred (..),
     Var (..))

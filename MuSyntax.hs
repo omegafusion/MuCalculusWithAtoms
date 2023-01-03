@@ -1,4 +1,4 @@
-module Syntax
+module MuSyntax
     (Formula (..),
      Pred (..),
      Var (..),
