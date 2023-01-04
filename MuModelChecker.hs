@@ -34,6 +34,10 @@ type Interpretation = Map Var (Set State)
 
 
 
+fix :: Eq a => (a -> a) -> a -> a
+fix f v = if f v == v then v else fix f (f v)
+
+
 check :: KripkeModel -> Formula -> Set State
 check model formula =
     let (states, trans, sat) = model
@@ -54,15 +58,7 @@ check model formula =
                                 -- s is the states that satisfy p
                                 -- we want the states with AT LEAST ONE successor in s
                                 in Set.filter canReach states
-                            Mu x p ->
-                                -- we need to do a fixpoint computation. start with x = {}
-                                -- then do x = [[p]] until x isn't changed
-                                let initialInterpretation = Map.insert x Set.empty interpretation
-                                    computeFixpoint s currentInterpretation =
-                                        let t = check' p currentInterpretation in
-                                            if s == t then t
-                                            else computeFixpoint t (Map.insert x t currentInterpretation)
-                                in computeFixpoint Set.empty initialInterpretation
+                            Mu x p -> fix (\s -> check' p (Map.insert x s interpretation)) Set.empty
     in check' formula Map.empty
 
 
