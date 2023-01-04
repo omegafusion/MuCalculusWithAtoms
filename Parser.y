@@ -37,8 +37,8 @@ import MuSyntax (Formula (..),
 
 -- TODO: Duals
 
-Formula     : mu var dot Formula      { Mu $2 $4 }
-            | nu var dot Formula      { Negation (Mu $2 (Negation (substitute $2 (Negation (Variable $2)) $4))) }
+Formula     : mu var dot Formula      { Mu $2 [($2, $4)] }
+            | nu var dot Formula      { Negation (Mu $2 [($2, (Negation (substitute $2 (Negation (Variable $2)) $4)))]) }
             | Formula1                { $1 }
 
 Formula1    : Formula2 or Formula1    { Disjunction $1 $3 }

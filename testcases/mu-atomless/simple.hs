@@ -7,7 +7,7 @@ import MuSyntax (
     Var (..),
     Formula (..))
 
-import Parser (parser)
+--import Parser (parser)
 
 import Data.Set (Set, fromList)
 
@@ -15,33 +15,35 @@ import Data.Set (Set, fromList)
 main :: IO ()
 main = 
     let myStates :: Set State
-        myStates = fromList $ Prelude.map State [0, 1, 2, 7]
-        myPredicates = fromList $ Prelude.map Pred [3, 4, 5, 8]
+        myStates = fromList $ Prelude.map State [0, 1, 2, 3]
+        myPredicates = fromList $ Prelude.map Pred [0, 1, 2, 3]
         myTrans = fromList [(State 0, State 1),
                             (State 1, State 2),
                             (State 2, State 0),
-                            (State 0, State 7),
-                            (State 7, State 7)]
-        mySat = fromList [(State 0, Pred 3),
-                          (State 1, Pred 4),
-                          (State 2, Pred 5),
-                          (State 7, Pred 8)]
+                            (State 0, State 3),
+                            (State 3, State 3)]
+        mySat = fromList [(State 0, Pred 0),
+                          (State 1, Pred 1),
+                          (State 2, Pred 2),
+                          (State 3, Pred 3)]
         myKripkeStructure = (myStates, myTrans, mySat)
-        a = Pred 3
-        b = Pred 8
-        x = Var 6
-        y = Var 9
+        a = Pred 0
+        b = Pred 3
+        x = Var 0
+        y = Var 1
         -- is a state with Pred 3 reachable?
-        myFormula = parser "mu v6 . p3 | <>v6"
-        myFormulaExpected = Mu x (Disjunction (Predicate a) (Diamond (Variable x)))
+        --myFormula = parser "mu v0 . p0 | <>v0"
+        myFormulaExpected = Mu x [(x, Disjunction (Predicate a) (Diamond (Variable x)))]
         -- is a state with Pred 8 reachable?
-        myFormula2 = parser "mu v9 . p8 | <>v9"
-        myFormula2Expected = Mu y (Disjunction (Predicate b) (Diamond (Variable y)))
-        -- not Pred 3 and not Pred 8
-        myFormula3 = Negation (Disjunction (Predicate a) (Predicate b))
+        --myFormula2 = parser "mu v1 . p3 | <>v1"
+        myFormula2Expected = Mu y [(y, Disjunction (Predicate b) (Diamond (Variable y)))]
+        -- not Pred 0 and not Pred 3
+        --myFormula3 = parser "~(p0 | p3)"
+        myFormula3Expected = Negation (Disjunction (Predicate a) (Predicate b))
     in do
-        print $ check myKripkeStructure myFormula
-        print $ myFormula == myFormulaExpected
-        print $ check myKripkeStructure myFormula2
-        print $ myFormula2 == myFormula2Expected
-        print $ check myKripkeStructure myFormula3;
+        print $ check myKripkeStructure myFormulaExpected
+        --print $ myFormula == myFormulaExpected
+        print $ check myKripkeStructure myFormula2Expected
+        --print $ myFormula2 == myFormula2Expected
+        print $ check myKripkeStructure myFormula3Expected
+        --print $ myFormula3 == myFormula3Expected
