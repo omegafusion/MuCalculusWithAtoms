@@ -102,9 +102,10 @@ substitute x t =
         sub (Negation p) = Negation (sub p)
         sub (Disjunction p q) = Disjunction (sub p) (sub q)
         sub (Diamond p) = Diamond (sub p)
-        sub (Mu _ [(y, p)]) = if x==y then Mu y [(y, p)] -- x does not occur free in p
-                       else if y `elem` fv then let z = freshFrom fv in Mu z [(z, sub (substitute y (Variable z) t))]
-                       else Mu y [(y, sub p)]
+        sub (Mu _ [(y, p)])
+            | x==y         = Mu y [(y, p)] -- x does not occur free in p
+            | y `elem` fv  = let z = freshFrom fv in Mu z [(z, sub (substitute y (Variable z) t))]
+            | otherwise    = Mu y [(y, sub p)]
             -- if the variable we're substituting is bound,
             -- it's not really the same variable  
     in sub
