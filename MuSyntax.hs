@@ -1,9 +1,9 @@
-module Syntax
+module MuSyntax
     (Formula (..),
      Pred (..),
      Var (..),
-     substitute) where
-
+     substitute
+) where
 
 newtype Pred = Pred Int deriving (Show, Eq, Ord)
 

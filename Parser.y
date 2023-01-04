@@ -6,7 +6,7 @@ import Data.Char (isDigit, isAlpha, isSpace)
 
 import Lexer (Token (..),
               lexer)
-import Syntax (Formula (..),
+import MuSyntax (Formula (..),
                Var (..),
                Pred (..),
                substitute)
