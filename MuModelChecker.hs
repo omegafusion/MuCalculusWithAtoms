@@ -15,7 +15,8 @@ import qualified Data.Map as Map
 import MuSyntax (
     Formula (..),
     Pred (..),
-    Var (..)) 
+    Var (..),
+    getByVar) 
 
 --import Parser (parser) 
 
@@ -57,7 +58,15 @@ check model formula =
                                 -- s is the states that satisfy p
                                 -- we want the states with AT LEAST ONE successor in s
                                 in Set.filter canReach states
-                            Mu _ [(x, p)] -> fix (\s -> check' p (Map.insert x s interpretation)) Set.empty
+                            --Mu _ [(x, p)] -> fix (\s -> check' p (Map.insert x s interpretation)) Set.empty
+                            Mu x vector ->
+                                let (vars, formulas) = unzip vector
+                                    initialStateSet = [Set.empty | _ <- vector]
+                                    extendStateSet states =
+                                        let varStates = zip vars states
+                                            r = foldl (\r' (x', s') -> Map.insert x' s' r') interpretation varStates
+                                        in [check' p r | p <- formulas]
+                                in getByVar x (zip vars (fix extendStateSet initialStateSet))
 
     in check' formula Map.empty
 

@@ -19,8 +19,10 @@ tokens :-
   $white+		    ;
   "p"$digit+    { \s -> TokenPred (Pred $ read (tail s)) }
   "v"$digit+    { \s -> TokenVar (Var $ read (tail s)) }
-  "("           { \s -> TokenOB }
-  ")"           { \s -> TokenCB }
+  "("           { \s -> TokenLPar }
+  ")"           { \s -> TokenRPar }
+  "{"           { \s -> TokenLCurl }
+  "}"           { \s -> TokenRCurl }
   "~"           { \s -> TokenNeg }
   "|"           { \s -> TokenDisj }
   "&"           { \s -> TokenConj }
@@ -31,6 +33,7 @@ tokens :-
   mu            { \s -> TokenMu }
   nu            { \s -> TokenNu }
   "."           { \s -> TokenDot }
+  ","           { \s -> TokenComma }
 
 {
 -- Each action has type :: String -> Token
@@ -38,19 +41,22 @@ tokens :-
 -- The token type:
 data Token 
       = TokenPred Pred
-      | TokenVar Var 
-      | TokenOB      
-      | TokenCB      
-      | TokenNeg     
-      | TokenDisj    
-      | TokenConj    
-      | TokenTrue    
+      | TokenVar Var
+      | TokenLPar
+      | TokenRPar
+      | TokenLCurl
+      | TokenRCurl
+      | TokenNeg
+      | TokenDisj
+      | TokenConj
+      | TokenTrue
       | TokenFalse
       | TokenDia
       | TokenBox
       | TokenMu
       | TokenNu
       | TokenDot
+      | TokenComma
       deriving (Eq,Show)
 
 

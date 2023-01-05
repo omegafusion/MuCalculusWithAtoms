@@ -2,7 +2,8 @@ module MuSyntax
     (Formula (..),
      Pred (..),
      Var (..),
-     substitute
+     substitute,
+     getByVar
 ) where
 
 import Data.List ( elemIndex )
@@ -24,16 +25,16 @@ data Formula
       deriving (Show) -- Syntactic equality only
 
 
-filterByVar :: Var -> FormulaVector -> FormulaVector
+filterByVar :: Var -> [(Var, a)] -> [(Var, a)]
 filterByVar x = filter ((==x) . fst)
 
-findIndex :: Var -> FormulaVector -> Maybe Int
+findIndex :: Var -> [(Var, a)] -> Maybe Int
 findIndex x vector = elemIndex x (map fst vector)
 
-getByVar :: Var -> FormulaVector -> Formula
+getByVar :: Var -> [(Var, a)] -> a
 getByVar x = snd . head . filterByVar x
 
-isLegal :: Var -> FormulaVector -> Bool
+isLegal :: Var -> [(Var, a)] -> Bool
 isLegal x vector = length (filterByVar x vector) == 1
 
 
