@@ -42,7 +42,8 @@ import MuSyntax (Formula (..),
 
 Formula     : mu var dot Formula                   { Mu $2 [($2, $4)] }
             | mu var dot lcurl FormulaList rcurl   { Mu $2 $5 }
-            --| nu var dot Formula      { Negation (Mu $2 [($2, (Negation (substitute $2 (Negation (Variable $2)) $4)))]) }
+            | nu var dot Formula                   { Negation (Mu $2 [($2, (Negation (substitute $2 (Negation (Variable $2)) $4)))]) }
+            --| nu var dot lcurl FormulaList rcurl   { Negation (Mu $2 (opposite $5)) }
             | Formula1                             { $1 }
 
 FormulaList : var dot Formula         { [($1, $3)] }
@@ -69,6 +70,9 @@ parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
 pred0 = Pred 0
+
+--opposite :: [(Var, Formula)] -> [(Var, Formula)]
+--opposite = map (\(x, p) -> (x, Negation (substitute x (Negation (Variable x)) p)))
 
 
 parser :: String -> Formula

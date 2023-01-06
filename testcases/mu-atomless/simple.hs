@@ -15,17 +15,23 @@ import Data.Set (Set, fromList)
 main :: IO ()
 main = 
     let myStates :: Set State
-        myStates = fromList $ Prelude.map State [0, 1, 2, 3]
+        myStates = fromList $ Prelude.map State [0, 1, 2, 3, 4, 5, 6]
         myPredicates = fromList $ Prelude.map Pred [0, 1, 2, 3]
         myTrans = fromList [(State 0, State 1),
                             (State 1, State 2),
                             (State 2, State 0),
                             (State 0, State 3),
-                            (State 3, State 3)]
+                            (State 3, State 3),
+                            (State 4, State 5),
+                            (State 5, State 6),
+                            (State 6, State 4)]
         mySat = fromList [(State 0, Pred 0),
                           (State 1, Pred 1),
                           (State 2, Pred 2),
-                          (State 3, Pred 3)]
+                          (State 3, Pred 3),
+                          (State 4, Pred 0),
+                          (State 5, Pred 1),
+                          (State 6, Pred 2)]
         myKripkeStructure = (myStates, myTrans, mySat)
         a = Pred 0
         b = Pred 3
@@ -44,6 +50,12 @@ main =
         --myFormula4 = parser "mu v0 . { v0 . p0 | <>v1 , v1 . pl | <>v2 , v2 . p2 | <>v0 }"
         myFormula4 = parser "mu v0 . { v0 . p0 | <>v1 , v1 . p1 | <>v2 , v2 . p2 | <>v0 }"
         myFormula5 = parser "mu v1 . { v0 . p0 | <>v1 , v1 . p1 | <>v2 , v2 . p2 | <>v0 }"
+        --myFormula6 = parser "nu v0 . { v0 . p0 & []v1 , v1 . p1 & []v2 , v2 . p2 & []v0 }"
+        myFormula6 = parser "mu v0 . { v0 . p3 | <>v1, v1 . p3 | <>v0 }"
+        myFormula7 = parser "~(mu v0 . { v0 .  ~(p3 & []~v1), v1 . ~(p3 & []~v0) })"
+        myFormula8 = parser "nu v0 . { v0 .  p3 & []v1, v1 . p3 & []v0 }"
+        --myFormula7 = parser "mu v0 .  p3 | <>v0"
+        --myFormula8 = parser "nu v0 .  p3 & []v0"
     in do
         print $ myFormula == myFormulaExpected
         print $ check myKripkeStructure myFormulaExpected
@@ -53,3 +65,6 @@ main =
         print $ check myKripkeStructure myFormula3Expected
         print $ check myKripkeStructure myFormula4
         print $ check myKripkeStructure myFormula5
+        print $ check myKripkeStructure myFormula6
+        print $ check myKripkeStructure myFormula7
+        print $ check myKripkeStructure myFormula8
