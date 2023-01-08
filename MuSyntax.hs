@@ -8,6 +8,7 @@ module MuSyntax
 
 import Data.List ( elemIndex )
 import Data.Maybe ( fromJust )
+import Data.Map ( Map, elems, keys, findWithDefault )
 
 newtype Pred = Pred Int deriving (Show, Eq, Ord)
 
@@ -76,7 +77,7 @@ freeVars formula =
 
 
 freshFrom :: [Var] -> Var
-freshFrom = foldl (\(Var x) (Var y) -> if x>=y then Var (x+1) else Var y) (Var 0)
+freshFrom = foldr (\(Var x) (Var y) -> if x>=y then Var (x+1) else Var y) (Var 0)
 
 
 nameswap :: Var -> Var -> Formula -> Formula
@@ -108,12 +109,50 @@ substitute x t =
         sub (Negation p) = Negation (sub p)
         sub (Disjunction p q) = Disjunction (sub p) (sub q)
         sub (Diamond p) = Diamond (sub p)
-        sub (Mu x ps) =
+        sub (Mu x' ps) =
             let subRow (y, p)
+                  | x == y       = (y, p)
+                  | y `elem` fv  = let z = freshFrom (fv ++ freeVars p)
+                                   in (z, sub (substitute y (Variable z) p))
+                  | otherwise    = (y, sub p)
+                ps' = map subRow ps
+                x'' = fst (ps' !! fromJust (findIndex x' ps))
+            in Mu x'' ps'
+    in sub
+            {-| x==y          = Mu y [(y, p)]
+            | y `elem` fv   = let z = freshFrom (fv ++ freeVars p)
+                              in Mu z [(z, sub (substitute y (Variable z) p))]
+            | otherwise     = Mu y [(y, sub p)]-}
+            {-let subRow (y, p)
+                    -- If x == y, then that means we don't substitute further as y is a bound variable
                     | x == y       = (y, p)
-                    | y `elem` fv  = let z = freshFrom fv in (z, sub (substitute y (Variable z) t))
+                    -- If y is in the free variables of the target of our substitution, we need to rename it to a fresh variable to avoid variable capture
+                    | y `elem` fv  = let z = freshFrom fv
+                                     in (z, sub (substitute y (Variable z) t))
+                    -- | y `elem` fv  = let z = freshFrom fv
+                    --                      beforeSub = sub p 
+                    --                  in (z, sub (substitute y (Variable z) beforeSub))
+                    -- otherwise, we can substitute as normal
                     | otherwise    = (y, sub p)
                 ps' = map subRow ps
                 x' = fst (ps' !! fromJust (findIndex x ps))
+            in Mu x' ps'-}
+
+{-substitute2 :: Map Var Formula -> Formula -> Formula
+substitute2 r =
+    let fv = concatMap freeVars (elems r)
+        sub (Variable x) = findWithDefault (Variable x) x r
+        sub (Predicate a) = Predicate a
+        sub (Negation p) = Negation (sub p)
+        sub (Disjunction p q) = Disjunction (sub p) (sub q)
+        sub (Diamond p) = Diamond (sub p)
+        sub (Mu x ps) =
+            let subRow (y, p)
+                    | y `elem` keys r  = (y, p)     -- we don't substitute further as y is a bound variable
+                    | y `elem` fv      = let z = freshFrom fv in (z, sub (substitute y (Variable z) t)) 
+                        -- rename y to a fresh variable to avoid variable capture, since y is free in something we're trying to substitute to
+                    | otherwise        = (y, sub p)     -- we can substitute as normal
+                ps' = map subRow ps
+                x' = fst (ps' !! fromJust (findIndex x ps))
             in Mu x' ps'
-    in sub
+    in sub-}
