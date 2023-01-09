@@ -107,7 +107,8 @@ instance Nominal Formula where
         eq p q
       eq (Diamond p) (Diamond q) =
         eq p q
-      eq (Mu x p) (Mu y q) = eq x y /\ eq p q
+      eq (Mu x p) (Mu y q) =
+        eq x y /\ eq p q
       eq _ _ = NL.false
 
       variants = variant

@@ -49,31 +49,31 @@ check :: KripkeModel -> Formula -> NL.Set State
 check model formula =
     let (states, trans, sat) = model
         check' :: Formula -> Interpretation -> NL.Set State
-        check' formula interpretation =
-            case formula of Predicate p -> NL.filter (\x -> (x, p) `NL.member` sat) states
-                            Variable v -> interpretation ! v
-                            Disjunction p q ->
-                                let s = check' p interpretation
-                                    t = check' q interpretation
-                                in s `NL.union` t
-                            IndexedDisjunction s ->
-                                NL.sum (NL.map (\(a, p) -> check' p interpretation) s)
-                            Negation p ->
-                                let s = check' p interpretation
-                                in states `NL.difference` s
-                            Diamond p ->
-                                let s = check' p interpretation
-                                    canReach x = NL.not $ NL.isEmpty $ NL.filter (\y -> (x, y) `NL.member` trans) s
-                                -- s is the states that satisfy p
-                                -- we want the states with AT LEAST ONE successor in s
-                                in NL.filter canReach states
-                            Mu x p ->
-                                -- we need to do a fixpoint computation. start with x = {}
-                                -- then do x = [[p]] until x isn't changed
-                                let initialInterpretation = Map.insert x NL.empty interpretation
-                                    computeFixpoint s currentInterpretation =
-                                        let t = check' p currentInterpretation in
-                                            if s == t then t
-                                            else computeFixpoint t (Map.insert x t currentInterpretation)
-                                in computeFixpoint NL.empty initialInterpretation
+        check' formula interpretation = case formula of
+            Predicate p -> NL.filter (\x -> (x, p) `NL.member` sat) states
+            Variable v -> interpretation ! v
+            Disjunction p q ->
+                let s = check' p interpretation
+                    t = check' q interpretation
+                in s `NL.union` t
+            IndexedDisjunction s ->
+                NL.sum (NL.map (\(a, p) -> check' p interpretation) s)
+            Negation p ->
+                let s = check' p interpretation
+                in states `NL.difference` s
+            Diamond p ->
+                let s = check' p interpretation
+                    canReach x = NL.not $ NL.isEmpty $ NL.filter (\y -> (x, y) `NL.member` trans) s
+                -- s is the states that satisfy p
+                -- we want the states with AT LEAST ONE successor in s
+                in NL.filter canReach states
+            Mu x p ->
+                -- we need to do a fixpoint computation. start with x = {}
+                -- then do x = [[p]] until x isn't changed
+                let initialInterpretation = Map.insert x NL.empty interpretation
+                    computeFixpoint s currentInterpretation =
+                        let t = check' p currentInterpretation in
+                            if s == t then t
+                            else computeFixpoint t (Map.insert x t currentInterpretation)
+                in computeFixpoint NL.empty initialInterpretation
     in check' formula Map.empty
