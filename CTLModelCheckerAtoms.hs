@@ -66,10 +66,12 @@ check model formula =
         check' sf = case sf of
             True -> states
             Predicate p -> NL.filter (\x -> sat `contains` (x, p)) states
-            Conjunction p q ->
+            Disjunction p q ->
                 let s = check' p
                     t = check' q
-                in s `NL.intersection` t 
+                in s `NL.union` t 
+            IndexedDisjunction s ->
+                NL.sum (NL.map (\(a, p) -> check' p) s)
             Negation p -> 
                 let s = check' p
                 in states `NL.difference` s
