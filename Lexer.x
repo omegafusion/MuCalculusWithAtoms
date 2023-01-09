@@ -24,8 +24,8 @@ tokens :-
   "v"$digit+    { \s -> TokenVar (read (tail s)) }
   "_"           { \s -> TokenUnderscore }
   ","           { \s -> TokenComma }
-  "("           { \s -> TokenOB }
-  ")"           { \s -> TokenCB }
+  "("           { \s -> TokenLPar }
+  ")"           { \s -> TokenRPar }
   "~"           { \s -> TokenNeg }
   "|"           { \s -> TokenDisj }
   "&"           { \s -> TokenConj }
@@ -50,8 +50,8 @@ data Token
       | TokenMVar String
       | TokenUnderscore
       | TokenComma
-      | TokenOB      
-      | TokenCB      
+      | TokenLPar  
+      | TokenRPar   
       | TokenNeg     
       | TokenDisj    
       | TokenConj    
