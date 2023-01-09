@@ -66,7 +66,7 @@ data Token
 
 
 atomFromString :: String -> Atom
-atomFromString = constant . read
+atomFromString = constant . toRational . read
 
 
 lexer :: String -> [Token]
