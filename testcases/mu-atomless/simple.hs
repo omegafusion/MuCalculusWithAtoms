@@ -52,10 +52,7 @@ main =
         myFormula5 = parser "mu v1 . { v0 . p0 | <>v1 , v1 . p1 | <>v2 , v2 . p2 | <>v0 }"
         --myFormula6 = parser "nu v0 . { v0 . p0 & []v1 , v1 . p1 & []v2 , v2 . p2 & []v0 }"
         myFormula6 = parser "mu v0 . { v0 . p3 | <>v1, v1 . p3 | <>v0 }"
-        myFormula7 = parser "~(mu v0 . { v0 .  ~(p3 & []~v1), v1 . ~(p3 & []~v0) })"
-        myFormula8 = parser "nu v0 . { v0 .  p3 & []v1, v1 . p3 & []v0 }"
-        --myFormula7 = parser "mu v0 .  p3 | <>v0"
-        --myFormula8 = parser "nu v0 .  p3 & []v0"
+        myFormula7 = parser "nu v0 . { v0 . p3 & []v1, v1 . p3 & []v0 }"
     in do
         print $ myFormula == myFormulaExpected
         print $ check myKripkeStructure myFormulaExpected
@@ -67,4 +64,3 @@ main =
         print $ check myKripkeStructure myFormula5
         print $ check myKripkeStructure myFormula6
         print $ check myKripkeStructure myFormula7
-        print $ check myKripkeStructure myFormula8

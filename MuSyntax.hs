@@ -3,12 +3,14 @@ module MuSyntax
      Pred (..),
      Var (..),
      substitute,
+     substituteMany,
      getByVar
 ) where
 
 import Data.List ( elemIndex )
 import Data.Maybe ( fromJust )
 import Data.Map ( Map, elems, keys, findWithDefault )
+import qualified Data.Map as Map
 
 newtype Pred = Pred Int deriving (Show, Eq, Ord)
 
@@ -138,21 +140,9 @@ substitute x t =
                 x' = fst (ps' !! fromJust (findIndex x ps))
             in Mu x' ps'-}
 
-{-substitute2 :: Map Var Formula -> Formula -> Formula
-substitute2 r =
-    let fv = concatMap freeVars (elems r)
-        sub (Variable x) = findWithDefault (Variable x) x r
-        sub (Predicate a) = Predicate a
-        sub (Negation p) = Negation (sub p)
-        sub (Disjunction p q) = Disjunction (sub p) (sub q)
-        sub (Diamond p) = Diamond (sub p)
-        sub (Mu x ps) =
-            let subRow (y, p)
-                    | y `elem` keys r  = (y, p)     -- we don't substitute further as y is a bound variable
-                    | y `elem` fv      = let z = freshFrom fv in (z, sub (substitute y (Variable z) t)) 
-                        -- rename y to a fresh variable to avoid variable capture, since y is free in something we're trying to substitute to
-                    | otherwise        = (y, sub p)     -- we can substitute as normal
-                ps' = map subRow ps
-                x' = fst (ps' !! fromJust (findIndex x ps))
-            in Mu x' ps'
-    in sub-}
+--substitute2 :: Map Var Formula -> Formula -> Formula
+--substitute2 :: Map k a -> (Var, Formula) -> t Formula -> (Var, Formula)
+--substitute2 r p = foldr (uncurry substitute) p (Map.assocs r)
+
+substituteMany :: [(Var, Formula)] -> Formula -> Formula
+substituteMany xts p = foldr (uncurry substitute) p xts
