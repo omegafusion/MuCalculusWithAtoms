@@ -49,6 +49,7 @@ import NLambda (atom)
 Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
             | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) (Negation $ substitute ($2 r) (Negation $ Variable ($2 r)) ($4 r)) }
             | or under mvar dot Formula { \r -> IndexedDisjunction $ graphRep $ \a -> $5 (insert $3 a r) }
+            | and under mvar dot Formula { \r -> Negation $ IndexedDisjunction $ graphRep $ \a -> Negation $ $5 (insert $3 a r) }
             | Formula1                { $1 }
 
 Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
