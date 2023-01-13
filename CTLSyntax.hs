@@ -4,7 +4,7 @@ module CTLSyntax (
     graphRep
 ) where
 
-import Prelude (Eq, Ord, Show, Int)
+import Prelude (Eq, Ord, Show, Int, Bool)
 import qualified Prelude as P
 
 import NLambda (
@@ -33,8 +33,8 @@ instance Nominal Pred where
 
 
 data Formula
-    = True
-    | Predicate Pred
+    = Predicate Pred
+    | Boolean Bool
     | Disjunction Formula Formula
     | IndexedDisjunction (Set (Atom, Formula))
     | Negation Formula
@@ -47,9 +47,9 @@ data Formula
 instance Nominal Formula where
 
       -- Two formulas are equivalent if they are syntactically equal. -- TODO: syntactic or semantic equivalence?
-      eq True True =
-        true
       eq (Predicate a) (Predicate a') =
+        eq a a'
+      eq (Boolean a) (Boolean a') =
         eq a a'
       eq (IndexedDisjunction f) (IndexedDisjunction f') =
         eq f f'
@@ -68,8 +68,8 @@ instance Nominal Formula where
       variants = variant
 
       mapVariables mvf formula = case formula of
-            True -> True
             Predicate a -> Predicate (mapVariables mvf a)
+            Boolean a -> Boolean (mapVariables mvf a)
             IndexedDisjunction s -> IndexedDisjunction (mapVariables mvf s)
             Disjunction p q -> Disjunction (mapVariables mvf p) (mapVariables mvf q)
             Negation p -> Negation (mapVariables mvf p)
@@ -79,8 +79,8 @@ instance Nominal Formula where
 
 
       foldVariables fvf acc formula = case formula of
-            True -> acc
             Predicate a -> foldVariables fvf acc a
+            Boolean a -> foldVariables fvf acc a
             IndexedDisjunction s -> foldVariables fvf acc s
             Disjunction p q -> foldVariables fvf (foldVariables fvf acc p) q
             Negation p -> foldVariables fvf acc p

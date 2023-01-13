@@ -5,7 +5,7 @@ module MuSyntax
      substitute,
      graphRep) where
 
-import Prelude ((==), (.), (+), (>=), (++), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, elem, otherwise, null, foldr)
+import Prelude ((==), (.), (+), (>=), (++), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, elem, otherwise, null, foldr, notElem)
 import qualified Prelude as P
 
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
@@ -47,6 +47,8 @@ data Formula
 
 instance Eq Formula where
     Predicate a == Predicate b =
+        a == b
+    Boolean a == Boolean b =
         a == b
     Variable x == Variable y =
         x == y
@@ -95,7 +97,10 @@ instance Nominal Var where
 instance Nominal Formula where
 
       -- Two formulas are equivalent if they are syntactically equal. -- TODO: syntactic or semantic equivalence?
+      eq :: Formula -> Formula -> NL.Formula
       eq (Predicate a) (Predicate b) =
+        eq a b
+      eq (Boolean a) (Boolean b) =
         eq a b
       eq (Variable x) (Variable y) =
         eq x y
@@ -116,6 +121,7 @@ instance Nominal Formula where
 
       mapVariables f formula = case formula of
             Predicate a -> Predicate (mapVariables f a)
+            Boolean a -> Boolean (mapVariables f a)
             Variable x -> Variable (mapVariables f x)
             IndexedDisjunction s -> IndexedDisjunction (mapVariables f s)
             Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
@@ -125,6 +131,7 @@ instance Nominal Formula where
 
       foldVariables f acc formula = case formula of
             Predicate a -> foldVariables f acc a
+            Boolean a -> foldVariables f acc a
             Variable x -> foldVariables f acc x 
             IndexedDisjunction s -> foldVariables f acc s
             Disjunction p q -> foldVariables f (foldVariables f acc p) q
@@ -144,7 +151,8 @@ freeVars :: Formula -> [Var]
 freeVars formula =
     let fvs xs f = case f of
                     Predicate p -> []
-                    Variable y -> if (y `elem` xs) then [] else [y]
+                    Boolean a -> []
+                    Variable y -> [y | y `notElem` xs]
                     Disjunction p q -> fvs xs p ++ fvs xs q
                     Negation p -> fvs xs p
                     Diamond p -> fvs xs p
