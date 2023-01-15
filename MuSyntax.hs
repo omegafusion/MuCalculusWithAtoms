@@ -11,6 +11,8 @@ import qualified Prelude as P
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
 import qualified NLambda as NL
 
+import Data.Bifunctor (second)
+
 
 --currently, P = A * {0}
 --           X = A * {1}
@@ -20,6 +22,8 @@ import qualified NLambda as NL
 data Pred = Pred Int [Atom] deriving (Show, Eq, Ord)
 
 data Var = Var Int [Atom] deriving (Show, Eq, Ord)
+
+--type FormulaVector = Set (Var, Formula)
 
 data Formula
       = Predicate Pred
@@ -195,15 +199,15 @@ substitute x t =
         sub (Negation p) =
             Negation (sub p)
         sub (IndexedDisjunction s) =
-            IndexedDisjunction (NL.map (\(a, p) -> (a, sub p)) s)
+            IndexedDisjunction (NL.map (second sub) s)
         sub (Disjunction p q) =
             Disjunction (sub p) (sub q)
         sub (Diamond p) =
             Diamond (sub p)
-        sub (Mu y p) =
-            if x==y then Mu y p -- x does not occur free in p
-            else if y `elem` fv then let z = freshFrom fv in Mu z (sub (substitute y (Variable z) t)) -- TODO
-            else Mu y (sub p)
+        sub (Mu y p)
+            | x==y         = Mu y p -- x does not occur free in p
+            | y `elem` fv  = let z = freshFrom fv in Mu z (sub (substitute y (Variable z) t)) -- TODO
+            | otherwise   = Mu y (sub p)
             -- if the variable we're substituting is bound,
             -- it's not really the same variable  
     in sub
