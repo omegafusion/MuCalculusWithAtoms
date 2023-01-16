@@ -11,6 +11,8 @@ import qualified Prelude as P
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
 import qualified NLambda as NL
 
+import SyntaxUtils (Pred)
+
 import Data.Bifunctor (second)
 
 
@@ -18,8 +20,6 @@ import Data.Bifunctor (second)
 --           X = A * {1}
 --which are equivariant sets
 --TODO: permit arbritrary sets with atoms??
-
-data Pred = Pred Int [Atom] deriving (Show, Eq, Ord)
 
 data Var = Var Int [Atom] deriving (Show, Eq, Ord)
 
@@ -78,11 +78,6 @@ graphRep f = NL.map (\a -> (a, f a)) atoms
 -- Formulas are nominal types since they contain atoms.
 -- This only makes sense if Pred and Var are also nominal types. 
 
-instance Nominal Pred where
-      eq (Pred n as) (Pred n' as') = eq n n' /\ eq as as'
-      variants = variant
-      mapVariables mvf (Pred n as) = Pred n (mapVariables mvf as)
-      foldVariables fvf acc (Pred n as) = foldVariables fvf acc as
 
 instance Nominal Var where
       eq (Var xlabel xatoms) (Var ylabel yatoms) = 

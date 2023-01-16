@@ -8,9 +8,10 @@ import Data.Map ((!), empty, insert)
 
 import Lexer (Token (..),
               lexer)
+              
+import SyntaxUtils (Pred (..))
 import MuSyntax (Formula (..),
                Var (..),
-               Pred (..),
                substitute,
                graphRep)
 

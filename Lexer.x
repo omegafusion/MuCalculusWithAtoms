@@ -4,9 +4,8 @@ module Lexer (
   lexer
 ) where
 
-import MuSyntax (
-  Pred (..),
-  Var (..))
+import MuSyntax ( Var (..) )
+import SyntaxUtils ( Pred (..) )
 
 import NLambda (Atom, atom, constant)
 }

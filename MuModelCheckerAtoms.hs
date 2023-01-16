@@ -1,8 +1,4 @@
 module MuModelCheckerAtoms (
-    State (..),
-    TransRel,
-    SatRel,
-    KripkeModel,
     Interpretation,
     check
 ) where
@@ -24,21 +20,9 @@ import MuSyntax (
 
 import Parser (parser) 
 
-data State = State Int [Atom] deriving (Show, Eq, Ord) -- TODO: Make into a set with atoms
-
-instance Nominal State where
-    eq (State i as) (State i' as') = i `eq` i' /\ as `eq` as'
-    variants = variant
-    mapVariables mvf (State i as) = State i (mapVariables mvf as)
-    foldVariables fvf acc (State i as) = foldVariables fvf acc as
+import ModelCheckerUtils ( State (..), TransRel, SatRel, KripkeModel )
 
 
-type TransRel = NL.Set (State, State) -- TODO: Convert to NLambda set
-
-type SatRel = NL.Set (State, Pred) -- TODO: Convert to NLambda set
-
-type KripkeModel = (NL.Set State, TransRel, SatRel) -- TODO: Convert to NLambda set
--- A Kripke model is a triple consisting of a state set, a transition relation and a satisfaction relation
 
 type Interpretation = Map Var (NL.Set State) -- TODO: Convert to NLambda set
 -- An interpretation is a mapping from the variables to the set of states

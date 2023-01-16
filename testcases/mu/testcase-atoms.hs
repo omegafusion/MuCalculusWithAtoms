@@ -5,16 +5,19 @@ import qualified Prelude as P
 
 import qualified NLambda as NL
 
-import MuModelCheckerAtoms (
+import ModelCheckerUtils (
     State (..),
     TransRel,
     SatRel,
-    KripkeModel,
-    check)
+    KripkeModel)
+
+import MuModelCheckerAtoms (check)
+
+
+import SyntaxUtils (Pred (..))
 
 import MuSyntax (
     Formula (..),
-    Pred (..),
     Var (..))
 
 
