@@ -64,8 +64,10 @@ check model formula =
             in fix f states
         check' :: Formula -> NL.Set State
         check' sf = case sf of
-            True -> states
-            Predicate p -> NL.filter (\x -> sat `contains` (x, p)) states
+            Predicate p ->
+                NL.filter (\x -> sat `contains` (x, p)) states
+            Boolean p ->
+                if p then states else NL.empty
             Disjunction p q ->
                 let s = check' p
                     t = check' q
