@@ -1,6 +1,5 @@
 module CTLSyntax (
     Formula (..),
-    Pred (..),
     graphRep
 ) where
 
@@ -23,13 +22,7 @@ import qualified NLambda as NL
 import GHC.Plugins (mapVarBndr)
 
 
-data Pred = Pred Int [Atom] deriving (Show, Eq, Ord)
-
-instance Nominal Pred where
-    eq (Pred n as) (Pred n' as') = eq n n' /\ eq as as'
-    variants = variant
-    mapVariables mvf (Pred n as) = Pred n (mapVariables mvf as)
-    foldVariables fvf acc (Pred n as) = foldVariables fvf acc as
+import SyntaxUtils (Pred (..))
 
 
 data Formula

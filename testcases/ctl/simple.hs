@@ -3,9 +3,8 @@ import qualified Prelude as P
 
 import qualified NLambda as NL
 
-import CTLSyntax (
-    Pred (..),
-    Formula (..))
+import SyntaxUtils ( Pred (..) )
+import CTLSyntax ( Formula (..))
 
 import CTLModelCheckerAtoms (
     State (..),

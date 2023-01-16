@@ -14,10 +14,10 @@ import CTLModelCheckerAtoms (
     check)
 
 
+import SyntaxUtils ( Pred (..) )
+
 import CTLSyntax (
     Formula (..),
-    Pred (..),
-    --Var (..),
     graphRep)
 
 

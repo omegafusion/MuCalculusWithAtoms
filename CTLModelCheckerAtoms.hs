@@ -16,17 +16,12 @@ import qualified Data.Map as Map
 import Data.Foldable (toList)
 import Data.Maybe (listToMaybe)
 
+import SyntaxUtils ( Pred (..) )
+
 import CTLSyntax (
-    Formula (..),
-    Pred (..))
+    Formula (..) )
 
-data State = State Int [Atom] deriving (Show, Eq, Ord)
-
-instance Nominal State where
-    eq (State n as) (State n' as') = eq n n' /\ eq as as'
-    variants = variant
-    mapVariables mvf (State n as) = State n (mapVariables mvf as)
-    foldVariables fvf acc (State n as) = foldVariables fvf acc as
+import ModelCheckerUtils (State (..))
 
 
 type TransRel = NL.Set (State, State)
