@@ -9,8 +9,7 @@ import Lexer (Token (..),
 import MuSyntax (Formula (..),
                Var (..),
                Pred (..),
-               substitute,
-               substituteMany,
+               negateVars,
                findIndex)
 import Data.Maybe (fromJust)
 }
@@ -45,7 +44,7 @@ import Data.Maybe (fromJust)
 
 Formula     : mu var dot Formula                   { Mu 0 [($2, $4)] }
             | mu var dot lcurl FormulaList rcurl   { Mu (fromJust $ findIndex $2 $5) $5 }
-            | nu var dot Formula                   { Negation (Mu 0 [($2, (Negation (substitute $2 (Negation (Variable $2)) $4)))]) }
+            | nu var dot Formula                   { Negation (Mu 0 [($2, (Negation (negateVars [$2] $4)))]) }
             | nu var dot lcurl FormulaList rcurl   { Negation (Mu (fromJust $ findIndex $2 $5) (opposites $5)) }
             | Formula1                             { $1 }
 
@@ -76,7 +75,8 @@ pred0 = Pred 0
 
 opposites :: [(Var, Formula)] -> [(Var, Formula)]
 opposites vector =
-      let sub = substituteMany [(x, Negation (Variable x)) | x <- map fst vector]
+      --let sub = substituteMany [(x, Negation (Variable x)) | x <- map fst vector]
+      let sub = negateVars (map fst vector)
       in map (\(x, p) -> (x, Negation (sub p))) vector
 
 --opposite :: [(Var, Formula)] -> [(Var, Formula)]

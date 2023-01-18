@@ -2,13 +2,14 @@ module MuSyntax
     (Formula (..),
      Pred (..),
      Var (..),
-     substitute,
-     substituteMany,
+     --substitute,
+     --substituteMany,
+     negateVars,
      getByVar,
      findIndex
 ) where
 
-import Data.List ( elemIndex )
+import Data.List ( elemIndex, delete )
 import Data.Maybe ( fromJust )
 import Data.Map ( Map, elems, keys, findWithDefault )
 import qualified Data.Map as Map
@@ -102,7 +103,7 @@ nameswap x y formula =
                        in Mu i (map nameswapRow ps)
 
 
-substitute :: Var -> Formula -> Formula -> Formula
+{-substitute :: Var -> Formula -> Formula -> Formula
 substitute x t =
     -- might rename bound variables if they appear free in t
     -- find free variables in t
@@ -147,4 +148,25 @@ substitute x t =
 --substitute2 r p = foldr (uncurry substitute) p (Map.assocs r)
 
 substituteMany :: [(Var, Formula)] -> Formula -> Formula    -- TODO: This doesn't actually work beyond simple variable negation!
-substituteMany xts p = foldr (uncurry substitute) p xts
+substituteMany xts p = foldr (uncurry substitute) p xts -}
+
+negateVars :: [Var] -> Formula -> Formula
+negateVars xs =
+    let sub (Variable y) =
+            if y `elem` xs then Negation (Variable y) else Variable y
+        sub (Predicate a) =
+            Predicate a
+        sub (Negation p) =
+            Negation (sub p)
+        sub (Disjunction p q) =
+            Disjunction (sub p) (sub q)
+        sub (Diamond p) =
+            Diamond (sub p)
+        sub (Mu i ps) =
+            let subRow (y, p) =
+                    if y `elem` xs then (y, negateVars (delete y xs) p)
+                    else                (y, sub p)
+                --ps' = map subRow ps
+                --x'' = fst (ps' !! fromJust (findIndex x' ps))
+            in Mu i (map subRow ps)
+    in sub
