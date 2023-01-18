@@ -3,10 +3,10 @@ module MuSyntax
      Pred (..),
      Var (..),
      --substitute,
-     negateVar,
+     negateVars,
      graphRep) where
 
-import Prelude ((==), (.), (+), (>=), (++), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, elem, otherwise, null, foldr, notElem)
+import Prelude ((==), (.), (+), (>=), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, otherwise)
 import qualified Prelude as P
 
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
@@ -15,6 +15,7 @@ import qualified NLambda as NL
 import SyntaxUtils (Pred)
 
 import Data.Bifunctor (second)
+import Data.List ( (++), elem, null, foldr, notElem, delete )
 
 
 --currently, P = A * {0}
@@ -208,10 +209,10 @@ substitute x t =
             -- it's not really the same variable  
     in sub-}
 
-negateVar :: Var -> Formula -> Formula
-negateVar x =
+negateVars :: [Var] -> Formula -> Formula
+negateVars xs =
     let sub (Variable y) =
-            if x==y then Negation (Variable y) else Variable y
+            if y `elem` xs then Negation (Variable y) else Variable y
         sub (Predicate a) =
             Predicate a
         sub (Negation p) =
@@ -223,6 +224,6 @@ negateVar x =
         sub (Diamond p) =
             Diamond (sub p)
         sub (Mu y p)
-            | x==y        = Mu y p -- since x does not occur free in p
-            | otherwise   = Mu y (sub p)
+            | y `elem` xs  = Mu y (negateVars (delete y xs) p) -- since x does not occur free in p
+            | otherwise    = Mu y (sub p)
     in sub

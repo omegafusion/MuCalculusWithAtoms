@@ -12,7 +12,7 @@ import Lexer (Token (..),
 import SyntaxUtils (Pred (..))
 import MuSyntax (Formula (..),
                Var (..),
-               negateVar,
+               negateVars,
                graphRep)
 
 import NLambda (atom)
@@ -48,7 +48,7 @@ import NLambda (atom)
 -- TODO: Duals
 
 Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
-            | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) (Negation $ negateVar ($2 r) ($4 r)) }
+            | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) (Negation $ negateVars [$2 r] ($4 r)) }
             | or under mvar dot Formula { \r -> IndexedDisjunction $ graphRep $ \a -> $5 (insert $3 a r) }
             | Formula1                { $1 }
 
