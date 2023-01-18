@@ -2,7 +2,8 @@ module MuSyntax
     (Formula (..),
      Pred (..),
      Var (..),
-     substitute,
+     --substitute,
+     negateVar,
      graphRep) where
 
 import Prelude ((==), (.), (+), (>=), (++), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, elem, otherwise, null, foldr, notElem)
@@ -139,11 +140,11 @@ instance Nominal Formula where
             Mu x p -> foldVariables f (foldVariables f acc x) p
 
 
--- TODO: Fix dual and substitute. Formula needs to be a NominalType it seems
+{-- TODO: Fix dual and substitute. Formula needs to be a NominalType it seems
 dual :: Formula -> Formula
 dual (Disjunction p q) = Negation (Disjunction (Negation p) (Negation q))
 dual (Diamond p) = Negation (Diamond (Negation p))
-dual (Mu x p) = Negation (Mu x (Negation (substitute x (Negation (Variable x)) p)))
+dual (Mu x p) = Negation (Mu x (Negation (substitute x (Negation (Variable x)) p)))-}
 
 
 freeVars :: Formula -> [Var]
@@ -182,7 +183,7 @@ nameswap x y formula =
             Mu z p -> Mu (ns x y z) (nameswap x y p)
 
 
-substitute :: Var -> Formula -> Formula -> Formula
+{-substitute :: Var -> Formula -> Formula -> Formula
 substitute x t =
     -- might rename bound variables if they appear free in t
     -- find free variables in t
@@ -205,4 +206,23 @@ substitute x t =
             | otherwise   = Mu y (sub p)
             -- if the variable we're substituting is bound,
             -- it's not really the same variable  
+    in sub-}
+
+negateVar :: Var -> Formula -> Formula
+negateVar x =
+    let sub (Variable y) =
+            if x==y then Negation (Variable y) else Variable y
+        sub (Predicate a) =
+            Predicate a
+        sub (Negation p) =
+            Negation (sub p)
+        sub (IndexedDisjunction s) =
+            IndexedDisjunction (NL.map (second sub) s)
+        sub (Disjunction p q) =
+            Disjunction (sub p) (sub q)
+        sub (Diamond p) =
+            Diamond (sub p)
+        sub (Mu y p)
+            | x==y        = Mu y p -- since x does not occur free in p
+            | otherwise   = Mu y (sub p)
     in sub
