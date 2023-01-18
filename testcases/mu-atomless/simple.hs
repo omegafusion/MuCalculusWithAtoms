@@ -39,28 +39,28 @@ main =
         y = Var 1
         -- is a state with Pred 3 reachable?
         myFormula = parser "mu v0 . p0 | <>v0"
-        myFormulaExpected = Mu x [(x, Disjunction (Predicate a) (Diamond (Variable x)))]
+        myFormulaExpected = Mu 0 [(x, Disjunction (Predicate a) (Diamond (Variable x)))]
         -- is a state with Pred 8 reachable?
         myFormula2 = parser "mu v1 . p3 | <>v1"
-        myFormula2Expected = Mu y [(y, Disjunction (Predicate b) (Diamond (Variable y)))]
+        myFormula2Expected = Mu 0 [(y, Disjunction (Predicate b) (Diamond (Variable y)))]
         -- not Pred 0 and not Pred 3
         myFormula3 = parser "~(p0 | p3)"
         myFormula3Expected = Negation (Disjunction (Predicate a) (Predicate b))
 
         --myFormula4 = parser "mu v0 . { v0 . p0 | <>v1 , v1 . pl | <>v2 , v2 . p2 | <>v0 }"
-        myFormula4 = parser "mu v0 . { v0 . p0 | <>v1 , v1 . p1 | <>v2 , v2 . p2 | <>v0 }"
-        myFormula5 = parser "mu v1 . { v0 . p0 | <>v1 , v1 . p1 | <>v2 , v2 . p2 | <>v0 }"
+        myFormula4 = parser "mu v0 . { v0 . p0 | <>v1, v1 . p1 | <>v2 , v2 . p2 | <>v0 }"
+        myFormula5 = parser "mu v1 . { v0 . p0 | <>v1, v1 . p1 | <>v2 , v2 . p2 | <>v0 }"
         --myFormula6 = parser "nu v0 . { v0 . p0 & []v1 , v1 . p1 & []v2 , v2 . p2 & []v0 }"
         myFormula6 = parser "mu v0 . { v0 . p3 | <>v1, v1 . p3 | <>v0 }"
         myFormula7 = parser "nu v0 . { v0 . p3 & []v1, v1 . p3 & []v0 }"
     in do
         print $ myFormula == myFormulaExpected
-        print $ check myKripkeStructure myFormulaExpected
+        print $ check myKripkeStructure myFormulaExpected   -- {0, 1, 2, 4, 5, 6}
         print $ myFormula2 == myFormula2Expected
-        print $ check myKripkeStructure myFormula2Expected
+        print $ check myKripkeStructure myFormula2Expected  -- {0, 1, 2, 3}
         print $ myFormula3 == myFormula3Expected
-        print $ check myKripkeStructure myFormula3Expected
-        print $ check myKripkeStructure myFormula4
-        print $ check myKripkeStructure myFormula5
-        print $ check myKripkeStructure myFormula6
-        print $ check myKripkeStructure myFormula7
+        print $ check myKripkeStructure myFormula3Expected  -- {1, 2, 5, 6}
+        print $ check myKripkeStructure myFormula4          -- {0, 4}
+        print $ check myKripkeStructure myFormula5          -- {1, 5}
+        print $ check myKripkeStructure myFormula6          -- {0, 1, 2, 3}
+        print $ check myKripkeStructure myFormula7          -- {3}

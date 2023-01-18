@@ -10,7 +10,9 @@ import MuSyntax (Formula (..),
                Var (..),
                Pred (..),
                substitute,
-               substituteMany)
+               substituteMany,
+               findIndex)
+import Data.Maybe (fromJust)
 }
 
 %name calc
@@ -41,10 +43,10 @@ import MuSyntax (Formula (..),
 
 -- TODO: Duals
 
-Formula     : mu var dot Formula                   { Mu $2 [($2, $4)] }
-            | mu var dot lcurl FormulaList rcurl   { Mu $2 $5 }
-            | nu var dot Formula                   { Negation (Mu $2 [($2, (Negation (substitute $2 (Negation (Variable $2)) $4)))]) }
-            | nu var dot lcurl FormulaList rcurl   { Negation (Mu $2 (opposites $5)) }
+Formula     : mu var dot Formula                   { Mu 0 [($2, $4)] }
+            | mu var dot lcurl FormulaList rcurl   { Mu (fromJust $ findIndex $2 $5) $5 }
+            | nu var dot Formula                   { Negation (Mu 0 [($2, (Negation (substitute $2 (Negation (Variable $2)) $4)))]) }
+            | nu var dot lcurl FormulaList rcurl   { Negation (Mu (fromJust $ findIndex $2 $5) (opposites $5)) }
             | Formula1                             { $1 }
 
 FormulaList : var dot Formula         { [($1, $3)] }

@@ -4,7 +4,8 @@ module MuSyntax
      Var (..),
      substitute,
      substituteMany,
-     getByVar
+     getByVar,
+     findIndex
 ) where
 
 import Data.List ( elemIndex )
@@ -24,7 +25,7 @@ data Formula
       | Disjunction Formula Formula
       | Negation Formula
       | Diamond Formula
-      | Mu Var FormulaVector
+      | Mu Int FormulaVector
       deriving (Show) -- Syntactic equality only
 
 
@@ -52,12 +53,13 @@ instance Eq Formula where
         p == p'
     Diamond p == Diamond p' =
         p == p'
-    Mu z ps == Mu z' ps' =
+    Mu i ps == Mu i' ps' =
         let checkRow (x, p) (x', p') =
                 let fv = freeVars p ++ freeVars p'
                     y = freshFrom fv
                 in nameswap x y p == nameswap x' y p'
-        in length ps == length ps' && and (zipWith checkRow ps ps') && findIndex z ps == findIndex z' ps'
+        --in length ps == length ps' && and (zipWith checkRow ps ps') && findIndex z ps == findIndex z' ps'
+        in length ps == length ps && and (zipWith checkRow ps ps') && i == i'   -- TODO: Currently overly restrictive. Permutations of the vector are not seen as equivalent
 
 
 {-dual :: Formula -> Formula
@@ -95,9 +97,9 @@ nameswap x y formula =
             Disjunction p q -> Disjunction (nameswap x y p) (nameswap x y q)
             Negation p -> Negation (nameswap x y p)
             Diamond p -> Diamond (nameswap x y p)
-            Mu z ps -> let z' = ns x y z
+            Mu i ps -> let --z' = ns x y z
                            nameswapRow (w, p) = (ns x y w, nameswap x y p)
-                       in Mu z' (map nameswapRow ps)
+                       in Mu i (map nameswapRow ps)
 
 
 substitute :: Var -> Formula -> Formula -> Formula
@@ -111,15 +113,15 @@ substitute x t =
         sub (Negation p) = Negation (sub p)
         sub (Disjunction p q) = Disjunction (sub p) (sub q)
         sub (Diamond p) = Diamond (sub p)
-        sub (Mu x' ps) =
+        sub (Mu i ps) =
             let subRow (y, p)
                   | x == y       = (y, p)
                   | y `elem` fv  = let z = freshFrom (fv ++ freeVars p)
                                    in (z, sub (substitute y (Variable z) p))
                   | otherwise    = (y, sub p)
                 ps' = map subRow ps
-                x'' = fst (ps' !! fromJust (findIndex x' ps))
-            in Mu x'' ps'
+                --x'' = fst (ps' !! fromJust (findIndex x' ps))
+            in Mu i ps'
     in sub
             {-| x==y          = Mu y [(y, p)]
             | y `elem` fv   = let z = freshFrom (fv ++ freeVars p)
@@ -144,5 +146,5 @@ substitute x t =
 --substitute2 :: Map k a -> (Var, Formula) -> t Formula -> (Var, Formula)
 --substitute2 r p = foldr (uncurry substitute) p (Map.assocs r)
 
-substituteMany :: [(Var, Formula)] -> Formula -> Formula
+substituteMany :: [(Var, Formula)] -> Formula -> Formula    -- TODO: This doesn't actually work beyond simple variable negation!
 substituteMany xts p = foldr (uncurry substitute) p xts

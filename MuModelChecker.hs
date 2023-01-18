@@ -59,14 +59,14 @@ check model formula =
                                 -- we want the states with AT LEAST ONE successor in s
                                 in Set.filter canReach states
                             --Mu _ [(x, p)] -> fix (\s -> check' p (Map.insert x s interpretation)) Set.empty
-                            Mu x vector ->
+                            Mu i vector ->
                                 let (vars, formulas) = unzip vector
                                     initialStateSet = [Set.empty | _ <- vector]
                                     extendStateSet states =
                                         let varStates = zip vars states
                                             r = foldl (\r' (x', s') -> Map.insert x' s' r') interpretation varStates
                                         in [check' p r | p <- formulas]
-                                in getByVar x (zip vars (fix extendStateSet initialStateSet))
+                                in snd (zip vars (fix extendStateSet initialStateSet) !! i)
 
     in check' formula Map.empty
 
