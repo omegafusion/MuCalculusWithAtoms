@@ -29,8 +29,8 @@ import NLambda (atom)
       mvar        { TokenMVar $$ }
       under       { TokenUnderscore }
       comma       { TokenComma }
-      lpar        { TokenOB }
-      rpar        { TokenCB }
+      lpar        { TokenLPar }
+      rpar        { TokenRPar }
       not         { TokenNeg }
       or          { TokenDisj }
       and         { TokenConj }
