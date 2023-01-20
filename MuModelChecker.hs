@@ -64,7 +64,7 @@ check model formula =
                                     initialStateSet = [Set.empty | _ <- vector]
                                     extendStateSet states =
                                         let varStates = zip vars states
-                                            r = foldl (\r' (x', s') -> Map.insert x' s' r') interpretation varStates
+                                            r = Map.fromList varStates `Map.union` interpretation
                                         in [check' p r | p <- formulas]
                                 in snd (zip vars (fix extendStateSet initialStateSet) !! i)
 
