@@ -55,17 +55,17 @@ main =
         vy = Var 1 []
         -- is a state with Pred a reachable?
         myFormula = parser "mu v0 . p0 | <>v0"
-        myFormulaExpected = Mu vx (Disjunction (Predicate p0) (Diamond (Variable vx)))
+        myFormulaExpected = Mu vx (vx, Disjunction (Predicate p0) (Diamond (Variable vx)))
         -- is a state with Pred d reachable?
         myFormula2 = parser "mu v1 . p3 | <>v1"
-        myFormula2Expected = Mu vy (Disjunction (Predicate p3) (Diamond (Variable vy)))
+        myFormula2Expected = Mu vy (vy, Disjunction (Predicate p3) (Diamond (Variable vy)))
         -- not Pred a and not Pred b
         myFormula3 = parser "~(p0 | p1)"
         myFormula3Expected = Negation (Disjunction (Predicate p0) (Predicate p1))
     in do
-        print $ check myKripkeStructure myFormula   -- [a, b, c]
+        print $ check [] myKripkeStructure myFormula   -- [a, b, c]
         print $ myFormula == myFormulaExpected
-        print $ check myKripkeStructure myFormula2  -- [a, b, c, d]
+        print $ check [] myKripkeStructure myFormula2  -- [a, b, c, d]
         print $ myFormula2 == myFormula2Expected
-        print $ check myKripkeStructure myFormula3  -- [c, d]
+        print $ check [] myKripkeStructure myFormula3  -- [c, d]
         print $ myFormula3 == myFormula3Expected

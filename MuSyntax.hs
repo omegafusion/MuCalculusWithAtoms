@@ -25,7 +25,10 @@ import Data.List ( (++), elem, null, foldr, notElem, delete )
 
 data Var = Var Int [Atom] deriving (Show, Eq, Ord)
 
---type FormulaVector = Set (Var, Formula)
+--type FormulaVector = (Var, Formula)
+
+-- The shape of a formula 
+type FormulaVectorRow = (Var, Formula)
 
 data Formula
       = Predicate Pred
@@ -35,8 +38,11 @@ data Formula
       | Disjunction Formula Formula
       | Negation Formula
       | Diamond Formula
-      | Mu Var Formula
+      | Mu Var FormulaVectorRow
+      -- | Mu Var Formula
       deriving (Show, Ord) -- Syntactic equality only
+
+-- The vector of a mu is the ORBIT of its second argument.  
 
 
 --instance Eq (Atom -> Formula) where
@@ -65,13 +71,13 @@ instance Eq Formula where
     Negation p == Negation p' =
         p == p'
     Diamond p == Diamond p' =
-        p == p'
-    Mu x p == Mu x' p' =
+        p == p' 
+    Mu vs (x, p) == Mu vs' (x', p') =
         let (Var i as) = x 
             (Var i' as') = x'
             fv = freeVars p ++ freeVars p'
             y = freshFrom fv
-        in as == as' && nameswap x y p == nameswap x' y p'
+        in vs == vs' && as == as' && nameswap x y p == nameswap x' y p' 
 
 
 graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
@@ -97,7 +103,7 @@ instance Nominal Var where
 
 instance Nominal Formula where
 
-      -- Two formulas are equivalent if they are syntactically equal. -- TODO: syntactic or semantic equivalence?
+      -- Two formulas are equivalent if they are syntactically equal.
       eq :: Formula -> Formula -> NL.Formula
       eq (Predicate a) (Predicate b) =
         eq a b
@@ -141,7 +147,7 @@ instance Nominal Formula where
             Mu x p -> foldVariables f (foldVariables f acc x) p
 
 
-{-- TODO: Fix dual and substitute. Formula needs to be a NominalType it seems
+{-- TODO: Fix dual and substitute
 dual :: Formula -> Formula
 dual (Disjunction p q) = Negation (Disjunction (Negation p) (Negation q))
 dual (Diamond p) = Negation (Diamond (Negation p))
@@ -157,8 +163,8 @@ freeVars formula =
                     Disjunction p q -> fvs xs p ++ fvs xs q
                     Negation p -> fvs xs p
                     Diamond p -> fvs xs p
-                    Mu x p -> fvs (x:xs) p
-    in fvs [] formula -- TODO
+                    Mu as (x, p) -> fvs (x:xs) p
+    in fvs [] formula
 
 
 freshFrom :: [Var] -> Var
@@ -181,9 +187,9 @@ nameswap x y formula =
             Disjunction p q -> Disjunction (nameswap x y p) (nameswap x y q)
             Negation p -> Negation (nameswap x y p)
             Diamond p -> Diamond (nameswap x y p)
-            Mu z p -> Mu (ns x y z) (nameswap x y p)
+            Mu as (z, p) -> Mu as (ns x y z, nameswap x y p)
 
-
+-- TODO Maybe we need this, maybe not.
 {-substitute :: Var -> Formula -> Formula -> Formula
 substitute x t =
     -- might rename bound variables if they appear free in t
@@ -203,7 +209,7 @@ substitute x t =
             Diamond (sub p)
         sub (Mu y p)
             | x==y         = Mu y p -- x does not occur free in p
-            | y `elem` fv  = let z = freshFrom fv in Mu z (sub (substitute y (Variable z) t)) -- TODO
+            | y `elem` fv  = let z = freshFrom fv in Mu z (sub (substitute y (Variable z) t)) 
             | otherwise   = Mu y (sub p)
             -- if the variable we're substituting is bound,
             -- it's not really the same variable  
@@ -223,7 +229,7 @@ negateVars xs =
             Disjunction (sub p) (sub q)
         sub (Diamond p) =
             Diamond (sub p)
-        sub (Mu y p)
-            | y `elem` xs  = Mu y (negateVars (delete y xs) p) -- since x does not occur free in p
-            | otherwise    = Mu y (sub p)
+        sub (Mu as (y, p))
+            | y `elem` xs  = Mu as (y, negateVars (delete y xs) p) -- since x does not occur free in p
+            | otherwise    = Mu as (y, sub p)
     in sub

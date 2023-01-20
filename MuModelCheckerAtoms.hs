@@ -10,27 +10,41 @@ import qualified Prelude as P
 import NLambda (Atom, Nominal, atom, eq, (/\), fromBool, variant, mapVariables, foldVariables)
 import qualified NLambda as NL
 
-import Data.Map (Map, (!))
-import qualified Data.Map as Map
+import Data.Bifunctor (second)
+
+--import Data.Map (Map, (!))
+--import qualified Data.Map as Map
 
 import MuSyntax (
     Formula (..),
     Pred (..),
     Var (..)) 
 
-import Parser (parser) 
+--import Parser (parser) 
 
 import ModelCheckerUtils ( State (..), TransRel, SatRel, KripkeModel )
 
 
 
-type Interpretation = Map Var (NL.Set State) -- TODO: Convert to NLambda set
+--type Interpretation = Map Var (NL.Set State)
 -- An interpretation is a mapping from the variables to the set of states
 
+type Interpretation = NL.Set (Var, NL.Set State)
+(!) :: Interpretation -> Var -> NL.Set State
+r ! v = NL.sum $ NL.map P.snd $ NL.filter (\(a, b) -> a `eq` v) r
+
+-- LEFT-BIASED union of two interpretations
+union :: Interpretation -> Interpretation -> Interpretation
+map1 `union` map2 =
+    let keys1 = NL.map P.fst map1
+        keys2 = NL.map P.fst map2
+        keys2include = NL.filter (`NL.notMember` keys1) keys2
+        map2include = NL.filter ((`NL.member` keys2include) . P.fst) map2
+    in map1 `NL.union` map2include
 
 
-check :: KripkeModel -> Formula -> NL.Set State
-check model formula =
+check :: [Atom] -> KripkeModel -> Formula -> NL.Set State
+check freeAtoms model formula =
     let (states, trans, sat) = model
         check' :: Formula -> Interpretation -> NL.Set State
         check' formula interpretation = case formula of
@@ -51,13 +65,18 @@ check model formula =
                 -- s is the states that satisfy p
                 -- we want the states with AT LEAST ONE successor in s
                 in NL.filter canReach states
-            Mu x p ->
+            Mu as row ->
                 -- we need to do a fixpoint computation. start with x = {}
                 -- then do x = [[p]] until x isn't changed
-                let initialInterpretation = Map.insert x NL.empty interpretation
-                    computeFixpoint s currentInterpretation =
-                        let t = check' p currentInterpretation in
-                            if s == t then t
-                            else computeFixpoint t (Map.insert x t currentInterpretation)
-                in computeFixpoint NL.empty initialInterpretation
-    in check' formula Map.empty
+                let vector = NL.orbit freeAtoms row
+                    initialInterpretation :: Interpretation
+                    initialInterpretation = NL.map (second (const NL.empty)) vector `union` interpretation         -- Initially
+                    --initialInterpretation = Map.insert x NL.empty interpretation
+                    extendInterpretation :: Interpretation -> Interpretation
+                    extendInterpretation curr =
+                        let new :: Interpretation
+                            new = NL.map (\(x, p) -> (x, check' p curr)) vector `union` curr in
+                            if new == curr then curr
+                            else extendInterpretation new
+                in extendInterpretation initialInterpretation ! as
+    in check' formula NL.empty

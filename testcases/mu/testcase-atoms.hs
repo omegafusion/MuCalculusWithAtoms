@@ -33,6 +33,6 @@ main = let states :: NL.Set State
 
            vx = Var 0 []
            pa = Pred 0 [NL.constant 5]
-           formula1 = Mu vx (Disjunction (Predicate pa) (Diamond (Variable vx))) 
+           formula1 = Mu vx (vx, Disjunction (Predicate pa) (Diamond (Variable vx)))
        in do
-           P.print $ check model formula1   -- {State 0 [], State 0 [5]}
+           P.print $ check [NL.constant 5] model formula1   -- {State 0 [], State 0 [5]}

@@ -47,8 +47,8 @@ import NLambda (atom)
 
 -- TODO: Duals
 
-Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
-            | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) (Negation $ negateVars [$2 r] ($4 r)) }
+Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($2 r, $4 r) }
+            | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) ($2 r, Negation $ negateVars [$2 r] ($4 r)) }
             | or under mvar dot Formula { \r -> IndexedDisjunction $ graphRep $ \a -> $5 (insert $3 a r) }
             | and under mvar dot Formula { \r -> Negation $ IndexedDisjunction $ graphRep $ \a -> Negation $ $5 (insert $3 a r) }
             | Formula1                { $1 }
