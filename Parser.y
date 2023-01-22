@@ -56,7 +56,7 @@ Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
             | Formula1                { $1 }
 
 Condition   :                         { const atoms }    
-            | neq Atom                { \r -> NL.filter (`neq` ($2 r)) atoms }
+            | neq Atom                { \r -> NL.filter (`NL.neq` ($2 r)) atoms }
 
 Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
             | Formula2 and Formula1   { \r -> Negation $ Disjunction (Negation ($1 r)) (Negation ($3 r)) }
