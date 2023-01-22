@@ -15,7 +15,8 @@ import MuSyntax (Formula (..),
                negateVars,
                graphRep)
 
-import NLambda (atom)
+import NLambda (atom, atoms, difference, fromList)
+import qualified NLambda as NL
 }
 
 %name calc
@@ -41,6 +42,7 @@ import NLambda (atom)
       mu          { TokenMu }
       nu          { TokenNu }
       dot         { TokenDot }
+      neq         { TokenNeq }
 
 
 %%
@@ -49,9 +51,12 @@ import NLambda (atom)
 
 Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
             | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) (Negation $ negateVars [$2 r] ($4 r)) }
-            | or under mvar dot Formula { \r -> IndexedDisjunction $ graphRep $ \a -> $5 (insert $3 a r) }
-            | and under mvar dot Formula { \r -> Negation $ IndexedDisjunction $ graphRep $ \a -> Negation $ $5 (insert $3 a r) }
+            | or under mvar Condition dot Formula { \r -> IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
+            | and under mvar Condition dot Formula { \r -> Negation $ IndexedDisjunction $ NL.map (\a -> (a, Negation $ $6 (insert $3 a r))) ($4 r) }
             | Formula1                { $1 }
+
+Condition   :                         { const atoms }    
+            | neq Atom                { \r -> NL.filter (`neq` ($2 r)) atoms }
 
 Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
             | Formula2 and Formula1   { \r -> Negation $ Disjunction (Negation ($1 r)) (Negation ($3 r)) }

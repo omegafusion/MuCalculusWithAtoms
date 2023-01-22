@@ -35,6 +35,7 @@ tokens :-
   mu            { \s -> TokenMu }
   nu            { \s -> TokenNu }
   "."           { \s -> TokenDot }
+  "/="          { \s -> TokenNeq }
   $digit+       { \s -> TokenAtom (atomFromString s) }
   $alpha+       { \s -> TokenMVar s }
 
@@ -61,6 +62,7 @@ data Token
       | TokenMu
       | TokenNu
       | TokenDot
+      | TokenNeq
       deriving (Eq,Show)
 
 
