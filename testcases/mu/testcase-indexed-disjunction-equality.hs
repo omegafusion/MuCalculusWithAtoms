@@ -38,9 +38,18 @@ main =
         mySat2 = NL.pairs myStates1 (NL.map (\a -> Pred 0 [a]) NL.atoms)
         myKripkeStructure2 = (myStates1, myTrans1, mySat2)
 
+        myStates3 = NL.filter (\(State 0 [a]) -> a `NL.ge` constant 0) myStates1
+        myTrans3 = NL.map (\a -> (a, a)) myStates3
+        mySat3 = NL.filter (\(State 0 [a], Pred 0 [b]) -> a `NL.ge` b NL./\ b `NL.ge` constant 0) mySat2
+        myKripkeStructure3 = (myStates3, myTrans3, mySat3)
+
+        myKripkeStructure4 = (myStates1, myTrans1, mySat3)
+
         -- for some atom, the states without any predicates labelled with atoms other than that atom
         myFormula = parser "|_a . &_b/=a .  ~p0_b"
        -- myFormulaExpected = ???
     in do
         print $ check myKripkeStructure1 myFormula
         print $ check myKripkeStructure2 myFormula
+        print $ check myKripkeStructure3 myFormula
+        print $ check myKripkeStructure4 myFormula
