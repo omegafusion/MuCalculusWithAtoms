@@ -43,6 +43,8 @@ import qualified NLambda as NL
       nu          { TokenNu }
       dot         { TokenDot }
       neq         { TokenNeq }
+      lt          { TokenLT }
+      gt          { TokenGT }
 
 
 %%
@@ -57,6 +59,8 @@ Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
 
 Condition   :                         { const atoms }    
             | neq Atom                { \r -> NL.filter (`NL.neq` ($2 r)) atoms }
+            | lt Atom                { \r -> NL.filter (`NL.lt` ($2 r)) atoms }
+            | gt Atom                { \r -> NL.filter (`NL.gt` ($2 r)) atoms }
 
 Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
             | Formula2 and Formula1   { \r -> Negation $ Disjunction (Negation ($1 r)) (Negation ($3 r)) }
