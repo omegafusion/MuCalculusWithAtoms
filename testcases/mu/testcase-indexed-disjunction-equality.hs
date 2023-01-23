@@ -46,8 +46,8 @@ main =
         myKripkeStructure4 = (myStates1, myTrans1, mySat3)
 
         -- for some atom, the states without any predicates labelled with atoms other than that atom
-        myFormula1 = parser "|_a . &_b/=a .  ~p0_b"
-        myFormula2 = parser "|_a . &_b<a .  ~p0_b"
+        myFormula1 = parser "M[ |_a . &_b/=a .  ~p0_b ]"
+        myFormula2 = parser "M[ |_a . &_b<a .  ~p0_b ]"
        -- myFormulaExpected = ???
     in do
         print $ check myKripkeStructure1 myFormula1 -- all states

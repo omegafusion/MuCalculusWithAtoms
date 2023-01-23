@@ -32,6 +32,8 @@ import qualified NLambda as NL
       comma       { TokenComma }
       lpar        { TokenLPar }
       rpar        { TokenRPar }
+      lbrack      { TokenLBrack }
+      rbrack      { TokenRBrack }
       not         { TokenNeg }
       or          { TokenDisj }
       and         { TokenConj }
@@ -45,13 +47,14 @@ import qualified NLambda as NL
       neq         { TokenNeq }
       lt          { TokenLT }
       gt          { TokenGT }
+      m           { TokenMuMark }
 
 
 %%
 
 -- TODO: Duals
 
-Formula     : MuFormula { $1 }
+Formula     : m lbrack MuFormula rbrack { $3 }
 
 MuFormula   : mu Variable dot MuFormula { \r -> Mu ($2 r) ($4 r) }
             | nu Variable dot MuFormula { \r -> Negation $ Mu ($2 r) (Negation $ negateVars [$2 r] ($4 r)) }
