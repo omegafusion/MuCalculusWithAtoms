@@ -13,7 +13,7 @@ import ModelCheckerUtils (
     KripkeModel)
 
 
-import MuModelCheckerAtoms (check)
+import ModelCheckerAtoms (check)
 
 
 import SyntaxUtils ( Pred (..) )
@@ -64,7 +64,7 @@ main =
         vy = Var 1 []
         -- is a state with Pred a reachable?
         myFormula = parser "M[ |_a . mu v0 . p0_a | <> v0 ]"
-        myFormulaExpected = IndexedDisjunction (graphRep (\a -> (Mu vx (Disjunction (Predicate (Pred 0 [a])) (Diamond (Variable vx))))))
+        myFormulaExpected = Left $ IndexedDisjunction (graphRep (\a -> (Mu vx (Disjunction (Predicate (Pred 0 [a])) (Diamond (Variable vx))))))
         --myFormula = parser "mu v0 . p0 | <>v0"
         --myFormulaExpected = Mu vx (Disjunction (Predicate p0) (Diamond (Variable vx)))
         -- is a state with Pred d reachable?

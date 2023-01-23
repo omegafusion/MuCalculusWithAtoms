@@ -10,10 +10,12 @@ import Lexer (Token (..),
               lexer)
               
 import SyntaxUtils (Pred (..))
-import MuSyntax (Formula (..),
-               Var (..),
+import MuSyntax (Var (..),
                negateVars,
                graphRep)
+import qualified MuSyntax as Mu
+
+import qualified CTLSyntax as CTL
 
 import NLambda (atom, atoms, difference, fromList)
 import qualified NLambda as NL
@@ -54,12 +56,12 @@ import qualified NLambda as NL
 
 -- TODO: Duals
 
-Formula     : m lbrack MuFormula rbrack { $3 }
+Formula     : m lbrack MuFormula rbrack { Left ($3 empty) }
 
-MuFormula   : mu Variable dot MuFormula { \r -> Mu ($2 r) ($4 r) }
-            | nu Variable dot MuFormula { \r -> Negation $ Mu ($2 r) (Negation $ negateVars [$2 r] ($4 r)) }
-            | or under mvar Condition dot MuFormula { \r -> IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
-            | and under mvar Condition dot MuFormula { \r -> Negation $ IndexedDisjunction $ NL.map (\a -> (a, Negation $ $6 (insert $3 a r))) ($4 r) }
+MuFormula   : mu Variable dot MuFormula { \r -> Mu.Mu ($2 r) ($4 r) }
+            | nu Variable dot MuFormula { \r -> Mu.Negation $ Mu.Mu ($2 r) (Mu.Negation $ negateVars [$2 r] ($4 r)) }
+            | or under mvar Condition dot MuFormula { \r -> Mu.IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
+            | and under mvar Condition dot MuFormula { \r -> Mu.Negation $ Mu.IndexedDisjunction $ NL.map (\a -> (a, Mu.Negation $ $6 (insert $3 a r))) ($4 r) }
             | MuFormula1                { $1 }
 
 Condition   :                        { const atoms }    
@@ -67,22 +69,22 @@ Condition   :                        { const atoms }
             | lt Atom                { \r -> NL.filter (`NL.lt` ($2 r)) atoms }
             | gt Atom                { \r -> NL.filter (`NL.gt` ($2 r)) atoms }
 
-MuFormula1  : MuFormula2 or MuFormula1  { \r -> Disjunction ($1 r) ($3 r) }
-            | MuFormula2 and MuFormula1 { \r -> Negation $ Disjunction (Negation ($1 r)) (Negation ($3 r)) }
+MuFormula1  : MuFormula2 or MuFormula1  { \r -> Mu.Disjunction ($1 r) ($3 r) }
+            | MuFormula2 and MuFormula1 { \r -> Mu.Negation $ Mu.Disjunction (Mu.Negation ($1 r)) (Mu.Negation ($3 r)) }
             | MuFormula2                { $1 }
 
-MuFormula2  : not MuFormula2          { Negation . $2 }
-            | dia MuFormula2          { Diamond . $2 }
-            | box MuFormula2          { Negation . Diamond . Negation . $2 }
+MuFormula2  : not MuFormula2          { Mu.Negation . $2 }
+            | dia MuFormula2          { Mu.Diamond . $2 }
+            | box MuFormula2          { Mu.Negation . Mu.Diamond . Mu.Negation . $2 }
             | MuFormula3              { $1 }
 
-MuFormula3  : true                    { const $ Boolean True }
-            | false                   { const $ Boolean False }
-            | MuPredicate             { Predicate . $1 }
-            | Variable                { Variable . $1 }
+MuFormula3  : true                    { const $ Mu.Boolean True }
+            | false                   { const $ Mu.Boolean False }
+            | Predicate               { Mu.Predicate . $1 }
+            | Variable                { Mu.Variable . $1 }
             | lpar MuFormula rpar     { $2 }
 
-MuPredicate : pred Atoms              { Pred $1 . $2 }
+Predicate   : pred Atoms              { Pred $1 . $2 }
 
 Variable    : var Atoms               { Var $1 . $2 }
 
@@ -99,8 +101,8 @@ Atom        : atom                    { const $1 }
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
-parser :: String -> Formula
-parser xs = calc (lexer xs) empty
+parser :: String -> Either Mu.Formula CTL.Formula
+parser = calc . lexer
 
 --main = getContents >>= print . calc . lexer
 }

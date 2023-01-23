@@ -14,7 +14,7 @@ import ModelCheckerUtils (
     KripkeModel)
 
 
-import MuModelCheckerAtoms (check)
+import ModelCheckerAtoms (check)
 
 
 import SyntaxUtils ( Pred (..) )

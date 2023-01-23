@@ -1,6 +1,6 @@
 -- a testcase for one of the examples in the paper
 
-import Prelude (($))
+import Prelude (($), (==), Either (..))
 import qualified Prelude as P
 
 import qualified NLambda as NL
@@ -11,8 +11,9 @@ import ModelCheckerUtils (
     SatRel,
     KripkeModel)
 
-import MuModelCheckerAtoms (check)
+import ModelCheckerAtoms (check)
 
+import Parser (parser)
 
 import SyntaxUtils (Pred (..))
 
@@ -33,6 +34,8 @@ main = let states :: NL.Set State
 
            vx = Var 0 []
            pa = Pred 0 [NL.constant 5]
-           formula1 = Mu vx (Disjunction (Predicate pa) (Diamond (Variable vx))) 
+           formula1 = parser "M[ mu v0 . p0_5 | <>v0 ]"
+           formula1Expected = Left $ Mu vx (Disjunction (Predicate pa) (Diamond (Variable vx))) 
        in do
            P.print $ check model formula1   -- {State 0 [], State 0 [5]}
+           P.print $ formula1 == formula1Expected
