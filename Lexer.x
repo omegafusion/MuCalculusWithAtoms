@@ -25,6 +25,8 @@ tokens :-
   ","           { \s -> TokenComma }
   "("           { \s -> TokenLPar }
   ")"           { \s -> TokenRPar }
+  "["           { \s -> TokenLBrack }
+  "]"           { \s -> TokenRBrack }
   "~"           { \s -> TokenNeg }
   "|"           { \s -> TokenDisj }
   "&"           { \s -> TokenConj }
@@ -38,6 +40,8 @@ tokens :-
   "/="          { \s -> TokenNeq }
   "<"           { \s -> TokenLT }
   ">"           { \s -> TokenGT }
+  "C"           { \s -> TokenCTLMark }
+  "M"           { \s -> TokenMuMark }
   $digit+       { \s -> TokenAtom (atomFromString s) }
   $alpha+       { \s -> TokenMVar s }
 
@@ -54,6 +58,8 @@ data Token
       | TokenComma
       | TokenLPar
       | TokenRPar
+      | TokenLBrack
+      | TokenRBrack
       | TokenNeg     
       | TokenDisj    
       | TokenConj    
@@ -67,6 +73,8 @@ data Token
       | TokenNeq
       | TokenLT
       | TokenGT
+      | TokenCTLMark
+      | TokenMuMark
       deriving (Eq,Show)
 
 

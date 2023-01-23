@@ -51,33 +51,35 @@ import qualified NLambda as NL
 
 -- TODO: Duals
 
-Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($4 r) }
-            | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) (Negation $ negateVars [$2 r] ($4 r)) }
-            | or under mvar Condition dot Formula { \r -> IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
-            | and under mvar Condition dot Formula { \r -> Negation $ IndexedDisjunction $ NL.map (\a -> (a, Negation $ $6 (insert $3 a r))) ($4 r) }
-            | Formula1                { $1 }
+Formula     : MuFormula { $1 }
 
-Condition   :                         { const atoms }    
-            | neq Atom                { \r -> NL.filter (`NL.neq` ($2 r)) atoms }
+MuFormula   : mu Variable dot MuFormula { \r -> Mu ($2 r) ($4 r) }
+            | nu Variable dot MuFormula { \r -> Negation $ Mu ($2 r) (Negation $ negateVars [$2 r] ($4 r)) }
+            | or under mvar Condition dot MuFormula { \r -> IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
+            | and under mvar Condition dot MuFormula { \r -> Negation $ IndexedDisjunction $ NL.map (\a -> (a, Negation $ $6 (insert $3 a r))) ($4 r) }
+            | MuFormula1                { $1 }
+
+Condition   :                        { const atoms }    
+            | neq Atom               { \r -> NL.filter (`NL.neq` ($2 r)) atoms }
             | lt Atom                { \r -> NL.filter (`NL.lt` ($2 r)) atoms }
             | gt Atom                { \r -> NL.filter (`NL.gt` ($2 r)) atoms }
 
-Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
-            | Formula2 and Formula1   { \r -> Negation $ Disjunction (Negation ($1 r)) (Negation ($3 r)) }
-            | Formula2                { $1 }
+MuFormula1  : MuFormula2 or MuFormula1  { \r -> Disjunction ($1 r) ($3 r) }
+            | MuFormula2 and MuFormula1 { \r -> Negation $ Disjunction (Negation ($1 r)) (Negation ($3 r)) }
+            | MuFormula2                { $1 }
 
-Formula2    : not Formula2            { Negation . $2 }
-            | dia Formula2            { Diamond . $2 }
-            | box Formula2            { Negation . Diamond . Negation . $2 }
-            | Formula3                { $1 }
+MuFormula2  : not MuFormula2          { Negation . $2 }
+            | dia MuFormula2          { Diamond . $2 }
+            | box MuFormula2          { Negation . Diamond . Negation . $2 }
+            | MuFormula3              { $1 }
 
-Formula3    : true                    { const $ Boolean True }
+MuFormula3  : true                    { const $ Boolean True }
             | false                   { const $ Boolean False }
-            | Predicate               { Predicate . $1 }
+            | MuPredicate             { Predicate . $1 }
             | Variable                { Variable . $1 }
-            | lpar Formula rpar       { $2 }
+            | lpar MuFormula rpar     { $2 }
 
-Predicate   : pred Atoms              { Pred $1 . $2 }
+MuPredicate : pred Atoms              { Pred $1 . $2 }
 
 Variable    : var Atoms               { Var $1 . $2 }
 
