@@ -43,12 +43,17 @@ import qualified NLambda as NL
       false       { TokenFalse }
       dia         { TokenDia }
       box         { TokenBox }
+      exists      { TokenExists }
+      next        { TokenNext }
+      globally    { TokenGlobally }
+      until       { TokenUntil }
       mu          { TokenMu }
       nu          { TokenNu }
       dot         { TokenDot }
       neq         { TokenNeq }
       lt          { TokenLT }
       gt          { TokenGT }
+      c           { TokenCTLMark }
       m           { TokenMuMark }
 
 
@@ -57,6 +62,28 @@ import qualified NLambda as NL
 -- TODO: Duals
 
 Formula     : m lbrack MuFormula rbrack { Left ($3 empty) }
+            | c lbrack CTLFormula rbrack { Right ($3 empty) }
+
+CTLFormula  : or under mvar Condition dot CTLFormula { \r -> CTL.IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
+            | and under mvar Condition dot CTLFormula { \r -> CTL.Negation $ CTL.IndexedDisjunction $ NL.map (\a -> (a, CTL.Negation $ $6 (insert $3 a r))) ($4 r) }
+            | CTLFormula1               { $1 }
+
+CTLFormula1 : CTLFormula2 or CTLFormula1  { \r -> CTL.Disjunction ($1 r) ($3 r) }
+            | CTLFormula2 and CTLFormula1 { \r -> CTL.Negation $ CTL.Disjunction (CTL.Negation ($1 r)) (CTL.Negation ($3 r)) }
+            | CTLFormula2                 { $1 }
+
+CTLFormula2 : not CTLFormula2             { CTL.Negation . $2 }
+            | exists CTLPathFormula       { $2 }
+            | CTLFormula3                 { $1 }
+
+CTLFormula3 : true                    { const $ CTL.Boolean True }
+            | false                   { const $ CTL.Boolean False }
+            | Predicate               { CTL.Predicate . $1 }
+            | lpar CTLFormula rpar    { $2 }
+
+CTLPathFormula : next CTLFormula2     { \r -> CTL.ExistsNext ($2 r) }
+               | globally CTLFormula2 { \r -> CTL.ExistsGlobally ($2 r) }
+               | lpar CTLFormula2 until CTLFormula2 rpar { \r -> CTL.ExistsUntil ($2 r) ($4 r) }
 
 MuFormula   : mu Variable dot MuFormula { \r -> Mu.Mu ($2 r) ($4 r) }
             | nu Variable dot MuFormula { \r -> Mu.Negation $ Mu.Mu ($2 r) (Mu.Negation $ negateVars [$2 r] ($4 r)) }

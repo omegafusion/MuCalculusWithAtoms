@@ -34,6 +34,10 @@ tokens :-
   false         { \s -> TokenFalse }
   "<>"          { \s -> TokenDia }
   "[]"          { \s -> TokenBox }
+  "E"           { \s -> TokenExists }
+  "X"           { \s -> TokenNext }
+  "G"           { \s -> TokenGlobally }
+  "U"           { \s -> TokenUntil }
   mu            { \s -> TokenMu }
   nu            { \s -> TokenNu }
   "."           { \s -> TokenDot }
@@ -67,6 +71,10 @@ data Token
       | TokenFalse
       | TokenDia
       | TokenBox
+      | TokenExists
+      | TokenNext
+      | TokenGlobally
+      | TokenUntil
       | TokenMu
       | TokenNu
       | TokenDot
