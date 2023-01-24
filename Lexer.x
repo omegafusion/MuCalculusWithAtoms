@@ -36,6 +36,7 @@ tokens :-
   "[]"          { \s -> TokenBox }
   "E"           { \s -> TokenExists }
   "X"           { \s -> TokenNext }
+  "F"           { \s -> TokenFinally }
   "G"           { \s -> TokenGlobally }
   "U"           { \s -> TokenUntil }
   mu            { \s -> TokenMu }
@@ -73,6 +74,7 @@ data Token
       | TokenBox
       | TokenExists
       | TokenNext
+      | TokenFinally
       | TokenGlobally
       | TokenUntil
       | TokenMu

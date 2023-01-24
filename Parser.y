@@ -45,6 +45,7 @@ import qualified NLambda as NL
       box         { TokenBox }
       exists      { TokenExists }
       next        { TokenNext }
+      finally     { TokenFinally }
       globally    { TokenGlobally }
       until       { TokenUntil }
       mu          { TokenMu }
@@ -82,6 +83,7 @@ CTLFormula3 : true                    { const $ CTL.Boolean True }
             | lpar CTLFormula rpar    { $2 }
 
 CTLPathFormula : next CTLFormula2     { \r -> CTL.ExistsNext ($2 r) }
+               | finally CTLFormula2  { \r -> CTL.ExistsUntil (CTL.Boolean True) ($2 r) }
                | globally CTLFormula2 { \r -> CTL.ExistsGlobally ($2 r) }
                | lpar CTLFormula2 until CTLFormula2 rpar { \r -> CTL.ExistsUntil ($2 r) ($4 r) }
 
