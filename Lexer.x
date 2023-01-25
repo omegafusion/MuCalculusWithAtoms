@@ -25,6 +25,8 @@ tokens :-
   ","           { \s -> TokenComma }
   "("           { \s -> TokenLPar }
   ")"           { \s -> TokenRPar }
+  "["           { \s -> TokenLBrack }
+  "]"           { \s -> TokenRBrack }
   "~"           { \s -> TokenNeg }
   "|"           { \s -> TokenDisj }
   "&"           { \s -> TokenConj }
@@ -32,9 +34,20 @@ tokens :-
   false         { \s -> TokenFalse }
   "<>"          { \s -> TokenDia }
   "[]"          { \s -> TokenBox }
+  "A"           { \s -> TokenForAll }
+  "E"           { \s -> TokenExists }
+  "X"           { \s -> TokenNext }
+  "F"           { \s -> TokenFinally }
+  "G"           { \s -> TokenGlobally }
+  "U"           { \s -> TokenUntil }
   mu            { \s -> TokenMu }
   nu            { \s -> TokenNu }
   "."           { \s -> TokenDot }
+  "/="          { \s -> TokenNeq }
+  "<"           { \s -> TokenLT }
+  ">"           { \s -> TokenGT }
+  "C"           { \s -> TokenCTLMark }
+  "M"           { \s -> TokenMuMark }
   $digit+       { \s -> TokenAtom (atomFromString s) }
   $alpha+       { \s -> TokenMVar s }
 
@@ -51,6 +64,8 @@ data Token
       | TokenComma
       | TokenLPar
       | TokenRPar
+      | TokenLBrack
+      | TokenRBrack
       | TokenNeg     
       | TokenDisj    
       | TokenConj    
@@ -58,9 +73,20 @@ data Token
       | TokenFalse
       | TokenDia
       | TokenBox
+      | TokenForAll
+      | TokenExists
+      | TokenNext
+      | TokenFinally
+      | TokenGlobally
+      | TokenUntil
       | TokenMu
       | TokenNu
       | TokenDot
+      | TokenNeq
+      | TokenLT
+      | TokenGT
+      | TokenCTLMark
+      | TokenMuMark
       deriving (Eq,Show)
 
 

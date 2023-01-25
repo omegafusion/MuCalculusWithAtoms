@@ -10,12 +10,15 @@ import Lexer (Token (..),
               lexer)
               
 import SyntaxUtils (Pred (..))
-import MuSyntax (Formula (..),
-               Var (..),
+import MuSyntax (Var (..),
                negateVars,
                graphRep)
+import qualified MuSyntax as Mu
 
-import NLambda (atom)
+import qualified CTLSyntax as CTL
+
+import NLambda (atom, atoms, difference, fromList)
+import qualified NLambda as NL
 }
 
 %name calc
@@ -31,6 +34,8 @@ import NLambda (atom)
       comma       { TokenComma }
       lpar        { TokenLPar }
       rpar        { TokenRPar }
+      lbrack      { TokenLBrack }
+      rbrack      { TokenRBrack }
       not         { TokenNeg }
       or          { TokenDisj }
       and         { TokenConj }
@@ -38,35 +43,79 @@ import NLambda (atom)
       false       { TokenFalse }
       dia         { TokenDia }
       box         { TokenBox }
+      forall      { TokenForAll }
+      exists      { TokenExists }
+      next        { TokenNext }
+      finally     { TokenFinally }
+      globally    { TokenGlobally }
+      until       { TokenUntil }
       mu          { TokenMu }
       nu          { TokenNu }
       dot         { TokenDot }
+      neq         { TokenNeq }
+      lt          { TokenLT }
+      gt          { TokenGT }
+      c           { TokenCTLMark }
+      m           { TokenMuMark }
 
 
 %%
 
 -- TODO: Duals
 
-Formula     : mu Variable dot Formula { \r -> Mu ($2 r) ($2 r, $4 r) }
-            | nu Variable dot Formula { \r -> Negation $ Mu ($2 r) ($2 r, Negation $ negateVars [$2 r] ($4 r)) }
-            | or under mvar dot Formula { \r -> IndexedDisjunction $ graphRep $ \a -> $5 (insert $3 a r) }
-            | and under mvar dot Formula { \r -> Negation $ IndexedDisjunction $ graphRep $ \a -> Negation $ $5 (insert $3 a r) }
-            | Formula1                { $1 }
+Formula     : m lbrack MuFormula rbrack { Left ($3 empty) }
+            | c lbrack CTLFormula rbrack { Right ($3 empty) }
 
-Formula1    : Formula2 or Formula1    { \r -> Disjunction ($1 r) ($3 r) }
-            | Formula2 and Formula1   { \r -> Negation $ Disjunction (Negation ($1 r)) (Negation ($3 r)) }
-            | Formula2                { $1 }
+CTLFormula  : or under mvar Condition dot CTLFormula { \r -> CTL.IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
+            | and under mvar Condition dot CTLFormula { \r -> CTL.Negation $ CTL.IndexedDisjunction $ NL.map (\a -> (a, CTL.Negation $ $6 (insert $3 a r))) ($4 r) }
+            | CTLFormula1               { $1 }
 
-Formula2    : not Formula2            { Negation . $2 }
-            | dia Formula2            { Diamond . $2 }
-            | box Formula2            { Negation . Diamond . Negation . $2 }
-            | Formula3                { $1 }
+CTLFormula1 : CTLFormula2 or CTLFormula1  { \r -> CTL.Disjunction ($1 r) ($3 r) }
+            | CTLFormula2 and CTLFormula1 { \r -> CTL.Negation $ CTL.Disjunction (CTL.Negation ($1 r)) (CTL.Negation ($3 r)) }
+            | CTLFormula2                 { $1 }
 
-Formula3    : true                    { const $ Boolean True }
-            | false                   { const $ Boolean False }
-            | Predicate               { Predicate . $1 }
-            | Variable                { Variable . $1 }
-            | lpar Formula rpar       { $2 }
+CTLFormula2 : not CTLFormula2             { CTL.Negation . $2 }
+            | exists next CTLFormula2     { \r -> CTL.ExistsNext ($3 r) }
+            | exists finally CTLFormula2  { \r -> CTL.ExistsUntil (CTL.Boolean True) ($3 r) }
+            | exists globally CTLFormula2 { \r -> CTL.ExistsGlobally ($3 r) }
+            | exists lpar CTLFormula2 until CTLFormula2 rpar { \r -> CTL.ExistsUntil ($3 r) ($5 r) }
+            | forall next CTLFormula2     { \r -> CTL.Negation $ CTL.ExistsNext $ CTL.Negation ($3 r) }
+            | forall finally CTLFormula2  { \r -> CTL.Negation $ CTL.ExistsUntil (CTL.Boolean True) (CTL.Negation ($3 r)) }
+            | forall globally CTLFormula2 { \r -> CTL.Negation $ CTL.ExistsGlobally $ CTL.Negation ($3 r) }
+            | forall lpar CTLFormula2 until CTLFormula2 rpar
+                  { \r -> CTL.Negation $ CTL.Disjunction (CTL.ExistsUntil (CTL.Negation ($5 r)) (CTL.Negation $ CTL.Disjunction ($3 r) ($5 r))) (CTL.ExistsGlobally $ CTL.Negation ($5 r)) }
+            | CTLFormula3                 { $1 }
+
+CTLFormula3 : true                    { const $ CTL.Boolean True }
+            | false                   { const $ CTL.Boolean False }
+            | Predicate               { CTL.Predicate . $1 }
+            | lpar CTLFormula rpar    { $2 }
+
+MuFormula   : mu Variable dot MuFormula { \r -> Mu.Mu ($2 r) ($2 r, $4 r) }
+            | nu Variable dot MuFormula { \r -> Mu.Negation $ Mu.Mu ($2 r) ($2 r, Mu.Negation $ negateVars [$2 r] ($4 r)) }
+            | or under mvar Condition dot MuFormula { \r -> Mu.IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
+            | and under mvar Condition dot MuFormula { \r -> Mu.Negation $ Mu.IndexedDisjunction $ NL.map (\a -> (a, Mu.Negation $ $6 (insert $3 a r))) ($4 r) }
+            | MuFormula1                { $1 }
+
+Condition   :                        { const atoms }    
+            | neq Atom               { \r -> NL.filter (`NL.neq` ($2 r)) atoms }
+            | lt Atom                { \r -> NL.filter (`NL.lt` ($2 r)) atoms }
+            | gt Atom                { \r -> NL.filter (`NL.gt` ($2 r)) atoms }
+
+MuFormula1  : MuFormula2 or MuFormula1  { \r -> Mu.Disjunction ($1 r) ($3 r) }
+            | MuFormula2 and MuFormula1 { \r -> Mu.Negation $ Mu.Disjunction (Mu.Negation ($1 r)) (Mu.Negation ($3 r)) }
+            | MuFormula2                { $1 }
+
+MuFormula2  : not MuFormula2          { Mu.Negation . $2 }
+            | dia MuFormula2          { Mu.Diamond . $2 }
+            | box MuFormula2          { Mu.Negation . Mu.Diamond . Mu.Negation . $2 }
+            | MuFormula3              { $1 }
+
+MuFormula3  : true                    { const $ Mu.Boolean True }
+            | false                   { const $ Mu.Boolean False }
+            | Predicate               { Mu.Predicate . $1 }
+            | Variable                { Mu.Variable . $1 }
+            | lpar MuFormula rpar     { $2 }
 
 Predicate   : pred Atoms              { Pred $1 . $2 }
 
@@ -85,8 +134,8 @@ Atom        : atom                    { const $1 }
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
-parser :: String -> Formula
-parser xs = calc (lexer xs) empty
+parser :: String -> Either Mu.Formula CTL.Formula
+parser = calc . lexer
 
 --main = getContents >>= print . calc . lexer
 }

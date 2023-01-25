@@ -12,7 +12,7 @@ import ModelCheckerUtils (
     SatRel,
     KripkeModel)
 
-import MuModelCheckerAtoms (check)
+import ModelCheckerAtoms (check)
 
 import SyntaxUtils (Pred (..))
 
@@ -54,14 +54,14 @@ main =
         vx = Var 0 []
         vy = Var 1 []
         -- is a state with Pred a reachable?
-        myFormula = parser "mu v0 . p0 | <>v0"
-        myFormulaExpected = Mu vx (vx, Disjunction (Predicate p0) (Diamond (Variable vx)))
+        myFormula = parser "M[ mu v0 . p0 | <>v0 ]"
+        myFormulaExpected = Left $ Mu vx (vx, Disjunction (Predicate p0) (Diamond (Variable vx)))
         -- is a state with Pred d reachable?
-        myFormula2 = parser "mu v1 . p3 | <>v1"
-        myFormula2Expected = Mu vy (vy, Disjunction (Predicate p3) (Diamond (Variable vy)))
+        myFormula2 = parser "M[ mu v1 . p3 | <>v1 ]"
+        myFormula2Expected = Left $ Mu vy (vy, Disjunction (Predicate p3) (Diamond (Variable vy)))
         -- not Pred a and not Pred b
-        myFormula3 = parser "~(p0 | p1)"
-        myFormula3Expected = Negation (Disjunction (Predicate p0) (Predicate p1))
+        myFormula3 = parser "M[ ~(p0 | p1) ]"
+        myFormula3Expected = Left $ Negation (Disjunction (Predicate p0) (Predicate p1))
     in do
         print $ check [] myKripkeStructure myFormula   -- [a, b, c]
         print $ myFormula == myFormulaExpected
