@@ -34,6 +34,7 @@ tokens :-
   false         { \s -> TokenFalse }
   "<>"          { \s -> TokenDia }
   "[]"          { \s -> TokenBox }
+  "A"           { \s -> TokenForAll }
   "E"           { \s -> TokenExists }
   "X"           { \s -> TokenNext }
   "F"           { \s -> TokenFinally }
@@ -72,6 +73,7 @@ data Token
       | TokenFalse
       | TokenDia
       | TokenBox
+      | TokenForAll
       | TokenExists
       | TokenNext
       | TokenFinally
