@@ -1,6 +1,6 @@
 -- a testcase for one of the examples in the paper
 
-import Prelude (($))
+import Prelude (($), (==), Either (..))
 import qualified Prelude as P
 
 import qualified NLambda as NL
@@ -11,8 +11,9 @@ import ModelCheckerUtils (
     SatRel,
     KripkeModel)
 
-import MuModelCheckerAtoms (check)
+import ModelCheckerAtoms (check)
 
+import Parser (parser)
 
 import SyntaxUtils (Pred (..))
 
@@ -32,11 +33,15 @@ main = let states = NL.map (\a -> State 0 [a]) NL.atoms
            a = NL.atom "a"
            indexedDisjunctionPart = IndexedDisjunction (NL.map (\b -> (b, Variable (Var 0 [b]))) (NL.atoms `NL.difference` NL.singleton a))
            row1 = (Var 0 [a], Negation (Disjunction (Negation (Predicate (Pred 0 [a]))) (Negation indexedDisjunctionPart)))
-           formula1 = Mu x row1
+           formula1 = parser "M[ mu (v0_0) { v0_a . p0_a & (|_b/=a . v0_b) } ]"
+           formula1Expected = Left (Mu x row1)
            row2 = (Var 0 [a], Negation (Disjunction (Negation (Predicate (Pred 0 [a]))) indexedDisjunctionPart))
-           formula2 = Mu x row2
-           formula3 = Mu (Var 0 [NL.constant 7]) row2
+           formula2 = parser "M[ mu (v0_0) { v0_a . p0_a & (|_b/=a . ~v0_b) } ]"
+           formula2Expected = Left $ Mu x row2
+           formula3 = parser "M[ mu (v0_7) { v0_a . p0_a & (|_b/=a . ~v0_b) } ]"
+           formula3Expected = Left $ Mu (Var 0 [NL.constant 7]) row2
        in do
            P.print $ check [] model formula1    -- empty
+           --P.print $ formula1 == formula1Expected
            P.print $ check [] model formula2    -- {state 0 [0]}
            P.print $ check [] model formula3    -- {state 0 [7]}

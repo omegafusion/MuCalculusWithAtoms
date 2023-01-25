@@ -27,6 +27,8 @@ tokens :-
   ")"           { \s -> TokenRPar }
   "["           { \s -> TokenLBrack }
   "]"           { \s -> TokenRBrack }
+  "{"           { \s -> TokenLCurl }
+  "}"           { \s -> TokenRCurl }
   "~"           { \s -> TokenNeg }
   "|"           { \s -> TokenDisj }
   "&"           { \s -> TokenConj }
@@ -66,6 +68,8 @@ data Token
       | TokenRPar
       | TokenLBrack
       | TokenRBrack
+      | TokenLCurl
+      | TokenRCurl
       | TokenNeg     
       | TokenDisj    
       | TokenConj    

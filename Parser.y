@@ -4,7 +4,7 @@ module Parser (parser) where
 
 import Data.Char (isDigit, isAlpha, isSpace)
 
-import Data.Map ((!), empty, insert)
+import Data.Map (Map, (!), empty, insert)
 
 import Lexer (Token (..),
               lexer)
@@ -36,6 +36,8 @@ import qualified NLambda as NL
       rpar        { TokenRPar }
       lbrack      { TokenLBrack }
       rbrack      { TokenRBrack }
+      lcurl       { TokenLCurl }
+      rcurl       { TokenRCurl }
       not         { TokenNeg }
       or          { TokenDisj }
       and         { TokenConj }
@@ -93,6 +95,12 @@ CTLFormula3 : true                    { const $ CTL.Boolean True }
 
 MuFormula   : mu Variable dot MuFormula { \r -> Mu.Mu ($2 r) ($2 r, $4 r) }
             | nu Variable dot MuFormula { \r -> Mu.Negation $ Mu.Mu ($2 r) ($2 r, Mu.Negation $ negateVars [$2 r] ($4 r)) }
+            | mu lpar Variable rpar lcurl Variable2 dot MuFormula rcurl {
+                  \r -> let (i, xs) = ($6 r)
+                            r' = addFreshAtoms xs r
+                            x = Var i (map NL.atom xs)
+                        in Mu.Mu ($3 r) (x, $8 r') }
+            | nu lpar Variable rpar lcurl Variable2 dot MuFormula rcurl { \r -> undefined }
             | or under mvar Condition dot MuFormula { \r -> Mu.IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
             | and under mvar Condition dot MuFormula { \r -> Mu.Negation $ Mu.IndexedDisjunction $ NL.map (\a -> (a, Mu.Negation $ $6 (insert $3 a r))) ($4 r) }
             | MuFormula1                { $1 }
@@ -120,19 +128,30 @@ MuFormula3  : true                    { const $ Mu.Boolean True }
 Predicate   : pred Atoms              { Pred $1 . $2 }
 
 Variable    : var Atoms               { Var $1 . $2 }
+Variable2   : var Atoms2              { \r -> ($1, $2 r) }
 
 Atoms       :                         { const [] }
             | under AtomList          { $2 }
+Atoms2      :                         { const [] }
+            | under AtomList2         { $2 }
 
 AtomList    : Atom                    { \r -> [$1 r] }
             | Atom comma AtomList     { \r -> ($1 r) : ($3 r) }
+AtomList2   : Atom2                   { \r -> [$1 r] }
+            | Atom2 comma AtomList2   { \r -> ($1 r) : ($3 r) }
 
 Atom        : atom                    { const $1 }
             | mvar                    { (! $1) }
+Atom2       : mvar                    { const $1 }
 
 {
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
+
+addFreshAtoms :: [String] -> Map String NL.Atom -> Map String NL.Atom
+addFreshAtoms xs r =
+      let pairs = map (\a -> (a, NL.atom a)) xs
+      in foldr (uncurry insert) r pairs
 
 parser :: String -> Either Mu.Formula CTL.Formula
 parser = calc . lexer
