@@ -6,7 +6,7 @@ module MuSyntax
      negateVars,
      graphRep) where
 
-import Prelude ((==), (.), (+), (>=), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, otherwise)
+import Prelude ((==), (.), (+), (>=), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, otherwise, maximum)
 import qualified Prelude as P
 
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
@@ -23,15 +23,18 @@ import Data.List ( (++), elem, null, foldr, notElem, delete )
 --which are equivariant sets
 --TODO: permit arbritrary sets with atoms??
 
-data Var = Var Int [Atom] deriving (Show, Eq, Ord)
+type Label = Int
 
+data Var = Var Label [Atom] deriving (Show, Eq, Ord)
+
+type FormulaSet = ([Label], Set (Atom, Formula))
 --type FormulaVector = Set (Var, Formula)
 
 data Formula
       = Predicate Pred
       | Boolean Bool
       | Variable Var
-      | IndexedDisjunction (Set (Atom, Formula))
+      | IndexedDisjunction FormulaSet
       | Disjunction Formula Formula
       | Negation Formula
       | Diamond Formula
@@ -66,12 +69,12 @@ instance Eq Formula where
         p == p'
     Diamond p == Diamond p' =
         p == p'
-    Mu x p == Mu x' p' =
-        let (Var i as) = x 
-            (Var i' as') = x'
-            fv = freeVars p ++ freeVars p'
-            y = freshFrom fv
-        in as == as' && nameswap x y p == nameswap x' y p'
+    Mu v p == Mu v' p' =
+        let (Var x as) = v 
+            (Var x' as') = v'
+            fl = freeLabels p ++ freeLabels p'
+            y = freshLabelFrom fl
+        in as == as' && labelswap x y p == labelswap x' y p'
 
 
 graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
@@ -105,8 +108,8 @@ instance Nominal Formula where
         eq a b
       eq (Variable x) (Variable y) =
         eq x y
-      eq (IndexedDisjunction f) (IndexedDisjunction g) =
-        eq f g
+      eq (IndexedDisjunction (bs, s)) (IndexedDisjunction (bs', s')) =
+        eq bs bs' /\ eq s s'
       eq (Disjunction p q) (Disjunction r s) =
         eq p r /\ eq q s
       eq (Negation p) (Negation q) =
@@ -124,7 +127,7 @@ instance Nominal Formula where
             Predicate a -> Predicate (mapVariables f a)
             Boolean a -> Boolean (mapVariables f a)
             Variable x -> Variable (mapVariables f x)
-            IndexedDisjunction s -> IndexedDisjunction (mapVariables f s)
+            IndexedDisjunction (bs, s) -> IndexedDisjunction (bs, mapVariables f s)
             Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
             Negation p -> Negation (mapVariables f p)
             Diamond p -> Diamond (mapVariables f p)
@@ -134,7 +137,7 @@ instance Nominal Formula where
             Predicate a -> foldVariables f acc a
             Boolean a -> foldVariables f acc a
             Variable x -> foldVariables f acc x 
-            IndexedDisjunction s -> foldVariables f acc s
+            IndexedDisjunction (bs, s) -> foldVariables f acc (bs, s)
             Disjunction p q -> foldVariables f (foldVariables f acc p) q
             Negation p -> foldVariables f acc p
             Diamond p -> foldVariables f acc p
@@ -148,7 +151,7 @@ dual (Diamond p) = Negation (Diamond (Negation p))
 dual (Mu x p) = Negation (Mu x (Negation (substitute x (Negation (Variable x)) p)))-}
 
 
-freeVars :: Formula -> [Var]
+{-freeVars :: Formula -> [Var]
 freeVars formula =
     let fvs xs f = case f of
                     Predicate p -> []
@@ -158,17 +161,40 @@ freeVars formula =
                     Negation p -> fvs xs p
                     Diamond p -> fvs xs p
                     Mu x p -> fvs (x:xs) p
-    in fvs [] formula -- TODO
+    in fvs [] formula -- TODO -}
+
+label :: Var -> Label
+label (Var x as) = x
+
+changeLabel :: Var -> Label -> Var
+changeLabel (Var x as) y = Var y as
+
+freeLabels :: Formula -> [Label]
+freeLabels formula =
+    let fls xs f = case f of
+                    Predicate p -> []
+                    Boolean a -> []
+                    Variable x -> let i = label x in [i | i `notElem` xs]
+                    IndexedDisjunction (bs, s) -> bs
+                    Disjunction p q -> fls xs p ++ fls xs q
+                    Negation p -> fls xs p
+                    Diamond p -> fls xs p
+                    Mu x p -> fls (label x : xs) p
+    in fls [] formula
 
 
-freshFrom :: [Var] -> Var
+{-freshFrom :: [Var] -> Var
 freshFrom vs =
     -- Return an unused variable that INDEXES NO ATOMS
     let newFresh (Var x as) y = if null as && x>=y then x+1 else y
-    in Var (foldr newFresh 0 vs) []
+    in Var (foldr newFresh 0 vs) []-}
+
+freshLabelFrom :: [Label] -> Label
+freshLabelFrom [] = 0
+freshLabelFrom ls = maximum ls + 1
 
 
-nameswap :: Var -> Var -> Formula -> Formula
+{-nameswap :: Var -> Var -> Formula -> Formula
 nameswap x y formula =
     let ns :: Var -> Var -> Var -> Var
         ns x y z
@@ -178,10 +204,29 @@ nameswap x y formula =
     in case formula of
             Variable z -> Variable (ns x y z)
             Predicate a -> Predicate a
+            IndexedDisjunction (bs, s) -> IndexedDisjunction (bs, NL.map (second (nameswap x y)) s)
             Disjunction p q -> Disjunction (nameswap x y p) (nameswap x y q)
             Negation p -> Negation (nameswap x y p)
             Diamond p -> Diamond (nameswap x y p)
-            Mu z p -> Mu (ns x y z) (nameswap x y p)
+            Mu z p -> Mu (ns x y z) (nameswap x y p)-}
+
+labelswap :: Label -> Label -> Formula -> Formula
+labelswap x y formula =
+    let ls :: Label -> Label -> Label -> Label
+        ls x y z
+            | z == y    = x
+            | z == x    = y
+            | otherwise = z
+        lsvar :: Label -> Label -> Var -> Var
+        lsvar x y v = let z = label v in changeLabel v (ls x y z)
+    in case formula of
+            Variable v -> Variable (lsvar x y v)
+            Predicate a -> Predicate a
+            IndexedDisjunction (bs, s) -> IndexedDisjunction (P.map (ls x y) bs, NL.map (second (labelswap x y)) s)
+            Disjunction p q -> Disjunction (labelswap x y p) (labelswap x y q)
+            Negation p -> Negation (labelswap x y p)
+            Diamond p -> Diamond (labelswap x y p)
+            Mu v p -> Mu (lsvar x y v) (labelswap x y p)
 
 
 {-substitute :: Var -> Formula -> Formula -> Formula
@@ -217,8 +262,8 @@ negateVars xs =
             Predicate a
         sub (Negation p) =
             Negation (sub p)
-        sub (IndexedDisjunction s) =
-            IndexedDisjunction (NL.map (second sub) s)
+        sub (IndexedDisjunction (bs, s)) =
+            IndexedDisjunction (bs, NL.map (second sub) s)
         sub (Disjunction p q) =
             Disjunction (sub p) (sub q)
         sub (Diamond p) =
