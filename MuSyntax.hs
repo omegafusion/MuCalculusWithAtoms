@@ -4,7 +4,8 @@ module MuSyntax
      Var (..),
      --substitute,
      negateVars,
-     graphRep) where
+     graphRep,
+     freeLabels) where
 
 import Prelude ((==), (.), (+), (>=), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, otherwise, maximum)
 import qualified Prelude as P

@@ -12,7 +12,8 @@ import Lexer (Token (..),
 import SyntaxUtils (Pred (..))
 import MuSyntax (Var (..),
                negateVars,
-               graphRep)
+               graphRep,
+               freeLabels)
 import qualified MuSyntax as Mu
 
 import qualified CTLSyntax as CTL
@@ -93,8 +94,8 @@ CTLFormula3 : true                    { const $ CTL.Boolean True }
 
 MuFormula   : mu Variable dot MuFormula { \r -> Mu.Mu ($2 r) ($4 r) }
             | nu Variable dot MuFormula { \r -> Mu.Negation $ Mu.Mu ($2 r) (Mu.Negation $ negateVars [$2 r] ($4 r)) }
-            | or under mvar Condition dot MuFormula { \r -> Mu.IndexedDisjunction $ NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r) }
-            | and under mvar Condition dot MuFormula { \r -> Mu.Negation $ Mu.IndexedDisjunction $ NL.map (\a -> (a, Mu.Negation $ $6 (insert $3 a r))) ($4 r) }
+            | or under mvar Condition dot MuFormula { \r -> Mu.IndexedDisjunction (freeLabels ($6 r), NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r)) }
+            | and under mvar Condition dot MuFormula { \r -> Mu.Negation $ Mu.IndexedDisjunction (freeLabels ($6 r), NL.map (\a -> (a, Mu.Negation $ $6 (insert $3 a r))) ($4 r)) }
             | MuFormula1                { $1 }
 
 Condition   :                        { const atoms }    
