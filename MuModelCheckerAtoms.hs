@@ -10,7 +10,7 @@ import qualified Prelude as P
 import NLambda (Atom, Nominal, atom, eq, (/\), fromBool, variant, mapVariables, foldVariables)
 import qualified NLambda as NL
 
-import Data.Bifunctor (second)
+import Data.Bifunctor (first, second)
 
 --import Data.Map (Map, (!))
 --import qualified Data.Map as Map
@@ -18,7 +18,8 @@ import Data.Bifunctor (second)
 import MuSyntax (
     Formula (..),
     Pred (..),
-    Var (..)) 
+    Var (..),
+    label) 
 
 --import Parser (parser) 
 
@@ -41,6 +42,11 @@ map1 `union` map2 =
         keys2include = NL.filter (`NL.notMember` keys1) keys2
         map2include = NL.filter ((`NL.member` keys2include) . P.fst) map2
     in map1 `NL.union` map2include
+
+insert :: Var -> NL.Set State -> Interpretation -> Interpretation
+insert v s r =
+    let r' = NL.singleton (v, s)
+    in union r' r
 
 
 check :: [Atom] -> KripkeModel -> Formula -> NL.Set State
@@ -65,18 +71,49 @@ check freeAtoms model formula =
                 -- s is the states that satisfy p
                 -- we want the states with AT LEAST ONE successor in s
                 in NL.filter canReach states
-            Mu as row ->
+            MuS x p ->
                 -- we need to do a fixpoint computation. start with x = {}
                 -- then do x = [[p]] until x isn't changed
-                let vector = NL.orbit freeAtoms row
+                let initialInterpretation = insert x NL.empty interpretation
+                    computeFixpoint s currentInterpretation =
+                        let t = check' p currentInterpretation in
+                            if s == t then t
+                            else computeFixpoint t (insert x t currentInterpretation)
+                in computeFixpoint NL.empty initialInterpretation
+            MuV v (bs, s) ->
+                -- we need to do a fixpoint computation. start with x = {}
+                -- then do x = [[p]] until x isn't changed
+                let --vector = NL.orbit freeAtoms row
+                    x = label v
+                    vector = NL.map (first $ \a -> Var x [a]) s
                     initialInterpretation :: Interpretation
-                    initialInterpretation = NL.map (second (const NL.empty)) vector `union` interpretation         -- Initially
+                    --initialInterpretation = NL.map (second (const NL.empty)) vector `union` interpretation         -- Initially
+                    initialInterpretation = NL.map (second (const NL.empty)) vector `union` interpretation         -- Initially variables paired with empty sets
                     --initialInterpretation = Map.insert x NL.empty interpretation
                     extendInterpretation :: Interpretation -> Interpretation
                     extendInterpretation curr =
                         let new :: Interpretation
-                            new = NL.map (\(x, p) -> (x, check' p curr)) vector `union` curr in
+                            new = NL.map (\(x, p) -> (x, check' p curr)) vector `union` curr in     -- For a variable and formula set, check the 
                             if new == curr then curr
                             else extendInterpretation new
-                in extendInterpretation initialInterpretation ! as
+                    extended = extendInterpretation initialInterpretation
+                in {-traceShow extended $ traceShow v $ traceShow (extended ! v) $ -}extended ! v
+            {-Mu v (bs, s) ->
+                -- we need to do a fixpoint computation. start with x = {}
+                -- then do x = [[p]] until x isn't changed
+                let --vector = NL.orbit freeAtoms row
+                    x = label v
+                    vector = NL.map (first $ \a -> Var x [a]) s
+                    initialInterpretation :: Interpretation
+                    --initialInterpretation = NL.map (second (const NL.empty)) vector `union` interpretation         -- Initially
+                    initialInterpretation = NL.map (second (const NL.empty)) vector `union` interpretation         -- Initially variables paired with empty sets
+                    --initialInterpretation = Map.insert x NL.empty interpretation
+                    extendInterpretation :: Interpretation -> Interpretation
+                    extendInterpretation curr =
+                        let new :: Interpretation
+                            new = NL.map (\(x, p) -> (x, check' p curr)) vector `union` curr in     -- For a variable and formula set, check the 
+                            if new == curr then curr
+                            else extendInterpretation new
+                    extended = extendInterpretation initialInterpretation
+                in {-traceShow extended $ traceShow v $ traceShow (extended ! v) $ -}extended ! v-}
     in check' formula NL.empty

@@ -1,6 +1,6 @@
 -- a testcase for one of the examples in the paper
 
-import Prelude (($), (==), Either (..))
+import Prelude (($), (==), Either (..), const)
 import qualified Prelude as P
 
 import qualified NLambda as NL
@@ -19,7 +19,8 @@ import SyntaxUtils (Pred (..))
 
 import MuSyntax (
     Formula (..),
-    Var (..))
+    Var (..),
+    graphRep)
 
 
 main :: P.IO()
@@ -35,7 +36,7 @@ main = let states :: NL.Set State
            vx = Var 0 []
            pa = Pred 0 [NL.constant 5]
            formula1 = parser "M[ mu v0 . p0_5 | <>v0 ]"
-           formula1Expected = Left $ Mu vx (vx, Disjunction (Predicate pa) (Diamond (Variable vx))) 
+           formula1Expected = Left $ MuS vx (Disjunction (Predicate pa) (Diamond (Variable vx)))
        in do
            P.print $ check [NL.constant 5] model formula1   -- {State 0 [], State 0 [5]}
            P.print $ formula1 == formula1Expected

@@ -5,7 +5,8 @@ module MuSyntax
      --substitute,
      negateVars,
      graphRep,
-     freeLabels) where
+     freeLabels,
+     label) where
 
 import Prelude ((==), (.), (+), (>=), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, otherwise, maximum)
 import qualified Prelude as P
@@ -29,10 +30,6 @@ type Label = Int
 data Var = Var Label [Atom] deriving (Show, Eq, Ord)
 
 type FormulaSet = ([Label], Set (Atom, Formula))
---type FormulaVector = (Var, Formula)
-
--- The shape of a formula 
-type FormulaVectorRow = (Var, Formula)
 
 data Formula
       = Predicate Pred
@@ -42,7 +39,8 @@ data Formula
       | Disjunction Formula Formula
       | Negation Formula
       | Diamond Formula
-      | Mu Var FormulaVectorRow
+      | MuS Var Formula
+      | MuV Var FormulaSet
       -- | Mu Var Formula
       deriving (Show, Ord) -- Syntactic equality only
 
@@ -76,12 +74,24 @@ instance Eq Formula where
         p == p'
     Diamond p == Diamond p' =
         p == p' 
-    Mu vs (v, p) == Mu vs' (v', p') =
-        let (Var x as) = v 
+    MuS v p == MuS v' p' =
+        let (Var x as) = v
             (Var x' as') = v'
             fl = freeLabels p ++ freeLabels p'
             y = freshLabelFrom fl
-        in vs == vs' && as == as' && labelswap x y p == labelswap x' y p' 
+        in as == as' && labelswap x y p == labelswap x' y p'
+    MuV v (bs, s) == MuV v' (bs', s') =
+        let (Var x as) = v 
+            (Var x' as') = v'
+            fl = bs ++ bs'
+            y = freshLabelFrom fl
+        in as == as' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s'
+    {-Mu v (bs, s) == Mu v' (bs', s') =
+        let (Var x as) = v 
+            (Var x' as') = v'
+            fl = bs ++ bs'
+            y = freshLabelFrom fl
+        in as == as' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s' -}
 
 
 graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
@@ -123,8 +133,12 @@ instance Nominal Formula where
         eq p q
       eq (Diamond p) (Diamond q) =
         eq p q
-      eq (Mu x p) (Mu y q) =
+      eq (MuS x p) (MuS y q) =
         eq x y /\ eq p q
+      eq (MuV x p) (MuV y q) =
+        eq x y /\ eq p q
+      {-eq (Mu x p) (Mu y q) =
+        eq x y /\ eq p q-}
       eq _ _ =
         NL.false
 
@@ -138,7 +152,9 @@ instance Nominal Formula where
             Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
             Negation p -> Negation (mapVariables f p)
             Diamond p -> Diamond (mapVariables f p)
-            Mu x p -> Mu (mapVariables f x) (mapVariables f p)
+            MuS x p -> MuS (mapVariables f x) (mapVariables f p)
+            MuV x p -> MuV (mapVariables f x) (mapVariables f p)
+            {-Mu x p -> Mu (mapVariables f x) (mapVariables f p)-}
 
       foldVariables f acc formula = case formula of
             Predicate a -> foldVariables f acc a
@@ -148,7 +164,9 @@ instance Nominal Formula where
             Disjunction p q -> foldVariables f (foldVariables f acc p) q
             Negation p -> foldVariables f acc p
             Diamond p -> foldVariables f acc p
-            Mu x p -> foldVariables f (foldVariables f acc x) p
+            MuS x p -> foldVariables f (foldVariables f acc x) p
+            MuV x p -> foldVariables f (foldVariables f acc x) p
+            {-Mu x p -> foldVariables f (foldVariables f acc x) p-}
 
 
 {-- TODO: Fix dual and substitute
@@ -186,7 +204,9 @@ freeLabels formula =
                     Disjunction p q -> fls xs p ++ fls xs q
                     Negation p -> fls xs p
                     Diamond p -> fls xs p
-                    Mu w (x, p) -> fls (label x : xs) p
+                    MuS v p -> let x = label v in delete x (freeLabels p)
+                    MuV v (bs, s) -> let x = label v in delete x bs
+                    {-Mu v (bs, s) -> let x = label v in delete x bs-}
     in fls [] formula
 
 
@@ -233,7 +253,9 @@ labelswap x y formula =
             Disjunction p q -> Disjunction (labelswap x y p) (labelswap x y q)
             Negation p -> Negation (labelswap x y p)
             Diamond p -> Diamond (labelswap x y p)
-            Mu u (v, p) -> Mu u (lsvar x y v, labelswap x y p)
+            MuS v p -> MuS (lsvar x y v) (labelswap x y p)
+            MuV v (bs, s) -> MuV (lsvar x y v) (P.map (ls x y) bs, NL.map (second (labelswap x y)) s)
+            {-Mu v (bs, s) -> Mu (lsvar x y v) (P.map (ls x y) bs, NL.map (second (labelswap x y)) s)-}
 
 -- TODO Maybe we need this, maybe not.
 {-substitute :: Var -> Formula -> Formula -> Formula
@@ -275,7 +297,13 @@ negateVars xs =
             Disjunction (sub p) (sub q)
         sub (Diamond p) =
             Diamond (sub p)
-        sub (Mu as (y, p))
-            | y `elem` xs  = Mu as (y, negateVars (delete y xs) p) -- since x does not occur free in p
-            | otherwise    = Mu as (y, sub p)
+        sub (MuS y p)
+            | y `elem` xs  = MuS y (negateVars (delete y xs) p) -- since x does not occur free in p
+            | otherwise    = MuS y (sub p)
+        sub (MuV y (bs, s))
+            | y `elem` xs  = MuV y (bs, NL.map (second (negateVars (delete y xs))) s) -- since x does not occur free in p
+            | otherwise    = MuV y (bs, NL.map (second sub) s)
+        {-sub (Mu y (bs, s))
+            | y `elem` xs  = Mu y (bs, NL.map (second (negateVars (delete y xs))) s) -- since x does not occur free in p
+            | otherwise    = Mu y (bs, NL.map (second sub) s)-}
     in sub
