@@ -283,7 +283,7 @@ substitute x t =
             -- it's not really the same variable  
     in sub-}
 
-negateVars :: [Var] -> Formula -> Formula
+{-negateVars :: [Var] -> Formula -> Formula
 negateVars xs =
     let sub (Variable y) =
             if y `elem` xs then Negation (Variable y) else Variable y
@@ -303,6 +303,34 @@ negateVars xs =
         sub (MuV y (bs, s))
             | y `elem` xs  = MuV y (bs, NL.map (second (negateVars (delete y xs))) s) -- since x does not occur free in p
             | otherwise    = MuV y (bs, NL.map (second sub) s)
+        {-sub (Mu y (bs, s))
+            | y `elem` xs  = Mu y (bs, NL.map (second (negateVars (delete y xs))) s) -- since x does not occur free in p
+            | otherwise    = Mu y (bs, NL.map (second sub) s)-}
+    in sub-}
+
+negateVars :: [Label] -> Formula -> Formula
+negateVars xs =
+    let sub (Variable v) =
+            let y = label v
+            in if y `elem` xs then Negation (Variable v) else Variable v
+        sub (Predicate a) =
+            Predicate a
+        sub (Negation p) =
+            Negation (sub p)
+        sub (IndexedDisjunction (bs, s)) =
+            IndexedDisjunction (bs, NL.map (second sub) s)
+        sub (Disjunction p q) =
+            Disjunction (sub p) (sub q)
+        sub (Diamond p) =
+            Diamond (sub p)
+        sub (MuS v p)
+            | y `elem` xs  = MuS v (negateVars (delete y xs) p) -- since x does not occur free in p
+            | otherwise    = MuS v (sub p)
+            where y = label v
+        sub (MuV v (bs, s))
+            | y `elem` xs  = MuV v (bs, NL.map (second (negateVars (delete y xs))) s) -- since x does not occur free in p
+            | otherwise    = MuV v (bs, NL.map (second sub) s)
+            where y = label v
         {-sub (Mu y (bs, s))
             | y `elem` xs  = Mu y (bs, NL.map (second (negateVars (delete y xs))) s) -- since x does not occur free in p
             | otherwise    = Mu y (bs, NL.map (second sub) s)-}

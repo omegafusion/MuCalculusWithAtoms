@@ -100,7 +100,14 @@ MuFormula   : mu Variable dot MuFormula { \r -> Mu.MuS ($2 r) ($4 r) }
                   let formulaSet = NL.map (\a -> (a, $6 (insert $4 a r))) NL.atoms
                   in Mu.MuV ($2 r) (freeLabels ($6 r), formulaSet)
               }
-            | nu lpar Variable rpar lcurl Variable dot MuFormula rcurl { \r -> undefined }
+            | nu Variable lcurl mvar dot MuFormula rcurl { \r ->
+                  let z = Mu.label ($2 r)
+                      mkphi1 = \a -> $6 (insert $4 a r)
+                      mkphi2 = negateVars [z] . mkphi1
+                      mkphi3 = Mu.Negation . mkphi2
+                      formulaSet = NL.map (\a -> (a, mkphi3 a)) NL.atoms
+                  in Mu.Negation $ Mu.MuV ($2 r) (freeLabels ($6 r), formulaSet)
+              }
             | or under mvar Condition dot MuFormula { \r -> Mu.IndexedDisjunction (freeLabels ($6 r), NL.map (\a -> (a, $6 (insert $3 a r))) ($4 r)) }
             | and under mvar Condition dot MuFormula { \r -> Mu.Negation $ Mu.IndexedDisjunction (freeLabels ($6 r), NL.map (\a -> (a, Mu.Negation $ $6 (insert $3 a r))) ($4 r)) }
             | MuFormula1                { $1 }
