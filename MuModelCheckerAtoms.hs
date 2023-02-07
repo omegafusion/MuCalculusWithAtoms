@@ -85,7 +85,7 @@ check freeAtoms model formula =
                 -- then do x = [[p]] until x isn't changed
                 let --vector = NL.orbit freeAtoms row
                     x = label v
-                    vector = NL.map (first $ \a -> Var x [a]) s
+                    vector = NL.map (first $ \as -> Var x as) s
                     initialInterpretation :: Interpretation
                     --initialInterpretation = NL.map (second (const NL.empty)) vector `union` interpretation         -- Initially
                     initialInterpretation = NL.map (second (const NL.empty)) vector `union` interpretation         -- Initially variables paired with empty sets

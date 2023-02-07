@@ -29,7 +29,8 @@ type Label = Int
 
 data Var = Var Label [Atom] deriving (Show, Eq, Ord)
 
-type FormulaSet = ([Label], Set (Atom, Formula))
+-- A FormulaSet represents a (partial) function of the form f : A^n -> Formula
+type FormulaSet = ([Label], Set ([Atom], Formula))
 
 data Formula
       = Predicate Pred
@@ -96,6 +97,9 @@ instance Eq Formula where
 
 graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
 graphRep f = NL.map (\a -> (a, f a)) atoms
+
+partialGraphRep :: Nominal a => Int -> ([Atom] -> a) -> Set ([Atom], a)
+partialGraphRep n f = NL.map (\as -> (as, f as)) (NL.replicateAtoms n)
 
 -- Formulas are nominal types since they contain atoms.
 -- This only makes sense if Pred and Var are also nominal types. 
