@@ -96,13 +96,13 @@ CTLFormula3 : true                    { const $ CTL.Boolean True }
 
 MuFormula   : mu Variable dot MuFormula { \r ->
                   let formulaSet = NL.singleton ([], ($4 r))
-                  in Mu.MuV ($2 r) (freeLabels ($4 r), formulaSet) }
+                  in Mu.Mu ($2 r) (freeLabels ($4 r), formulaSet) }
             | nu Variable dot MuFormula { \r ->
                   let formulaSet = NL.singleton ([], Mu.Negation ($4 r))
-                  in Mu.Negation $ Mu.MuV ($2 r) (freeLabels ($4 r), formulaSet) }
+                  in Mu.Negation $ Mu.Mu ($2 r) (freeLabels ($4 r), formulaSet) }
             | mu Variable lcurl mvar dot MuFormula rcurl { \r ->
                   let formulaSet = NL.map (\a -> ([a], $6 (insert $4 a r))) NL.atoms
-                  in Mu.MuV ($2 r) (freeLabels ($6 r), formulaSet)
+                  in Mu.Mu ($2 r) (freeLabels ($6 r), formulaSet)
               }
             | nu Variable lcurl mvar dot MuFormula rcurl { \r ->
                   let z = Mu.label ($2 r)
@@ -110,7 +110,7 @@ MuFormula   : mu Variable dot MuFormula { \r ->
                       mkphi2 = negateVars [z] . mkphi1
                       mkphi3 = Mu.Negation . mkphi2
                       formulaSet = NL.map (\a -> ([a], mkphi3 a)) NL.atoms
-                  in Mu.Negation $ Mu.MuV ($2 r) (freeLabels ($6 r), formulaSet)
+                  in Mu.Negation $ Mu.Mu ($2 r) (freeLabels ($6 r), formulaSet)
               }
             | or under mvar Condition dot MuFormula { \r -> Mu.IndexedDisjunction (freeLabels ($6 r), NL.map (\a -> ([a], $6 (insert $3 a r))) ($4 r)) }
             | and under mvar Condition dot MuFormula { \r -> Mu.Negation $ Mu.IndexedDisjunction (freeLabels ($6 r), NL.map (\a -> ([a], Mu.Negation $ $6 (insert $3 a r))) ($4 r)) }

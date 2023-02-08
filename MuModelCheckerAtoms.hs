@@ -71,16 +71,7 @@ check freeAtoms model formula =
                 -- s is the states that satisfy p
                 -- we want the states with AT LEAST ONE successor in s
                 in NL.filter canReach states
-            MuS x p ->
-                -- we need to do a fixpoint computation. start with x = {}
-                -- then do x = [[p]] until x isn't changed
-                let initialInterpretation = insert x NL.empty interpretation
-                    computeFixpoint s currentInterpretation =
-                        let t = check' p currentInterpretation in
-                            if s == t then t
-                            else computeFixpoint t (insert x t currentInterpretation)
-                in computeFixpoint NL.empty initialInterpretation
-            MuV v (bs, s) ->
+            Mu v (bs, s) ->
                 -- we need to do a fixpoint computation. start with x = {}
                 -- then do x = [[p]] until x isn't changed
                 let --vector = NL.orbit freeAtoms row
