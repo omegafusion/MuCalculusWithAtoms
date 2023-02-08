@@ -94,8 +94,12 @@ CTLFormula3 : true                    { const $ CTL.Boolean True }
             | Predicate               { CTL.Predicate . $1 }
             | lpar CTLFormula rpar    { $2 }
 
-MuFormula   : mu Variable dot MuFormula { \r -> Mu.MuS ($2 r) ($4 r) }
-            | nu Variable dot MuFormula { \r -> Mu.Negation $ Mu.MuS ($2 r) (Mu.Negation $ ($4 r)) }
+MuFormula   : mu Variable dot MuFormula { \r ->
+                  let formulaSet = NL.singleton ([], ($4 r))
+                  in Mu.MuV ($2 r) (freeLabels ($4 r), formulaSet) }
+            | nu Variable dot MuFormula { \r ->
+                  let formulaSet = NL.singleton ([], Mu.Negation ($4 r))
+                  in Mu.Negation $ Mu.MuV ($2 r) (freeLabels ($4 r), formulaSet) }
             | mu Variable lcurl mvar dot MuFormula rcurl { \r ->
                   let formulaSet = NL.map (\a -> ([a], $6 (insert $4 a r))) NL.atoms
                   in Mu.MuV ($2 r) (freeLabels ($6 r), formulaSet)
