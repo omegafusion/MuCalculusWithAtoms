@@ -64,9 +64,9 @@ main =
         myFormula3 = parser "M[ ~(p0_0 | p0_1) ]"
         myFormula3Expected = Left $ Negation (Disjunction (Predicate pa) (Predicate pb))
     in do
-        print $ check [a, b, c, d] myKripkeStructure myFormula   -- [a, b, c]
+        print $ check myKripkeStructure myFormula   -- [a, b, c]
         print $ myFormula == myFormulaExpected
-        print $ check [a, b, c, d] myKripkeStructure myFormula2  -- [a, b, c, d]
+        print $ check myKripkeStructure myFormula2  -- [a, b, c, d]
         print $ myFormula2 == myFormula2Expected
-        print $ check [a, b, c, d] myKripkeStructure myFormula3  -- [c, d]
+        print $ check myKripkeStructure myFormula3  -- [c, d]
         print $ myFormula3 == myFormula3Expected

@@ -38,5 +38,5 @@ main = let states :: NL.Set State
            formula1 = parser "M[ mu v0 . p0_5 | <>v0 ]"
            formula1Expected = Left $ Mu vx ([0], NL.singleton ([], Disjunction (Predicate pa) (Diamond (Variable vx))))
        in do
-           P.print $ check [NL.constant 5] model formula1   -- {State 0 [], State 0 [5]}
+           P.print $ check model formula1   -- {State 0 [], State 0 [5]}
            P.print $ formula1 == formula1Expected

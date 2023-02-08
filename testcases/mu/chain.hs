@@ -61,7 +61,7 @@ main = let phi = parser "M[ |_a . nu v0_a { b . |_c . p0_c & (&_d/=c . ~p0_d) & 
            sat4 = NL.fromList [(State 0 [], Pred 0 [NL.constant 0]), (State 1 [], Pred 0 [NL.constant 1]), (State 2 [], Pred 0 [NL.constant 0])]
            model4 = (NL.fromList states4list, NL.fromList trans4list, NL.fromList sat4list)
 
-       in do print $ check [] model1 phi
-             print $ check [] model2 phi
-             print $ check [] model3 phi
-             print $ check [] model4 phi
+       in do print $ check model1 phi
+             print $ check model2 phi
+             print $ check model3 phi
+             print $ check model4 phi

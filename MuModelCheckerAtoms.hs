@@ -49,8 +49,8 @@ insert v s r =
     in union r' r
 
 
-check :: [Atom] -> KripkeModel -> Formula -> NL.Set State
-check freeAtoms model formula =
+check :: KripkeModel -> Formula -> NL.Set State
+check model formula =
     let (states, trans, sat) = model
         check' :: Formula -> Interpretation -> NL.Set State
         check' formula interpretation = case formula of

@@ -80,5 +80,5 @@ main =
         --print $ myFormula2 == myFormula2Expected
         --print $ check myKripkeStructure myFormula3  -- [c, d]
         --print $ myFormula3 == myFormula3Expected
-        print $ check [] myKripkeStructure myFormulaExpected
+        print $ check myKripkeStructure myFormulaExpected
         print $ myFormula == myFormulaExpected

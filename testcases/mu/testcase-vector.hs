@@ -41,7 +41,7 @@ main = let states = NL.map (\a -> State 0 [a]) NL.atoms
            formula3 = parser "M[ mu v0_7 { a . p0_a & (|_b/=a . ~v0_b) } ]"
            formula3Expected = Left $ Mu (Var 0 [NL.constant 7]) row2
        in do
-           P.print $ check [] model formula1    -- empty
+           P.print $ check model formula1    -- empty
            --P.print $ formula1 == formula1Expected
-           P.print $ check [] model formula2    -- {state 0 [0]}
-           P.print $ check [] model formula3    -- {state 0 [7]}
+           P.print $ check model formula2    -- {state 0 [0]}
+           P.print $ check model formula3    -- {state 0 [7]}

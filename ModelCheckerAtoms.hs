@@ -14,7 +14,7 @@ import NLambda (Set, Atom)
 
 type EitherFormula = Either Mu.Formula CTL.Formula
 
-check :: [Atom] -> KripkeModel -> EitherFormula -> Set State
-check freeAtoms model p = case p of
-    Left phi -> Mu.check freeAtoms model phi
+check :: KripkeModel -> EitherFormula -> Set State
+check model p = case p of
+    Left phi -> Mu.check model phi
     Right phi -> CTL.check model phi
