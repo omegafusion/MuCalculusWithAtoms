@@ -31,11 +31,11 @@ main = let states = NL.map (\a -> State 0 [a]) NL.atoms
            x = Var 0 [NL.constant 0]
            -- No other state has the same predicate
            a = NL.atom "a"
-           indexedDisjunctionPart = IndexedDisjunction ([0], NL.map (\b -> (b, Variable (Var 0 [b]))) (NL.atoms `NL.difference` NL.singleton a))
-           row1 = ([0], NL.map (\a -> (a, Negation (Disjunction (Negation (Predicate (Pred 0 [a]))) (Negation indexedDisjunctionPart)))) NL.atoms)
+           indexedDisjunctionPart = IndexedDisjunction ([0], NL.map (\b -> ([b], Variable (Var 0 [b]))) (NL.atoms `NL.difference` NL.singleton a))
+           row1 = ([0], NL.map (\a -> ([a], Negation (Disjunction (Negation (Predicate (Pred 0 [a]))) (Negation indexedDisjunctionPart)))) NL.atoms)
            formula1 = parser "M[ mu v0_0 { a . p0_a & (|_b/=a . v0_b) } ]"
            formula1Expected = Left (MuV x row1)
-           row2 = ([0], NL.map (\a -> (a, Negation (Disjunction (Negation (Predicate (Pred 0 [a]))) indexedDisjunctionPart))) NL.atoms)
+           row2 = ([0], NL.map (\a -> ([a], Negation (Disjunction (Negation (Predicate (Pred 0 [a]))) indexedDisjunctionPart))) NL.atoms)
            formula2 = parser "M[ mu v0_0 { a . p0_a & (|_b/=a . ~v0_b) } ]"
            formula2Expected = Left $ MuV x row2
            formula3 = parser "M[ mu v0_7 { a . p0_a & (|_b/=a . ~v0_b) } ]"
