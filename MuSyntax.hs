@@ -75,18 +75,20 @@ instance Eq Formula where
         p == p'
     Diamond p == Diamond p' =
         p == p' 
-    MuS v p == MuS v' p' =
+    {-MuS v p == MuS v' p' =
         let (Var x as) = v
             (Var x' as') = v'
             fl = freeLabels p ++ freeLabels p'
             y = freshLabelFrom fl
-        in as == as' && labelswap x y p == labelswap x' y p'
+        in as == as' && labelswap x y p == labelswap x' y p'-}
     MuV v (bs, s) == MuV v' (bs', s') =
         let (Var x as) = v 
             (Var x' as') = v'
             fl = bs ++ bs'
             y = freshLabelFrom fl
-        in as == as' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s'
+        in as == as' && bs == bs' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s'
+    _ == _ =
+        P.False
     {-Mu v (bs, s) == Mu v' (bs', s') =
         let (Var x as) = v 
             (Var x' as') = v'
