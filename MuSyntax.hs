@@ -2,12 +2,7 @@ module MuSyntax
     (Formula (..),
      Pred (..),
      Var (..),
-     --substitute,
      negateVars,
-     graphRep,
-     boundedGraphRep,
-     conditionalBoundedGraphRep,
-     constantAsGraph,
      freeLabels,
      label) where
 
@@ -85,25 +80,6 @@ instance Eq Formula where
         in as == as' && bs == bs' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s'
     _ == _ =
         P.False
-
-
-graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
-graphRep f = NL.map (\a -> (a, f a)) atoms
-
-boundedGraphRep :: Nominal a => Int -> ([Atom] -> a) -> Set ([Atom], a)
-boundedGraphRep n f = NL.map (\as -> (as, f as)) $ NL.replicateAtoms n
-
-constantAsGraph :: (Nominal a, Nominal b) => b -> Set ([a], b)
-constantAsGraph p = NL.singleton ([], p)
-
-elementToSingleton :: Nominal a => (Atom -> a) -> ([Atom] -> a)
-elementToSingleton f [a] = f a
-
-conditionalGraphRep :: Nominal a => (Atom -> NL.Formula) -> (Atom -> a) -> Set (Atom, a)
-conditionalGraphRep cond f = NL.map (\a -> (a, f a)) $ NL.filter cond atoms
-
-conditionalBoundedGraphRep :: Nominal a => Int -> ([Atom] -> NL.Formula) -> ([Atom] -> a) -> Set ([Atom], a)
-conditionalBoundedGraphRep n cond f = NL.map (\as -> (as, f as)) $ NL.filter cond $ NL.replicateAtoms n
 
 
 -- Formulas are nominal types since they contain atoms.

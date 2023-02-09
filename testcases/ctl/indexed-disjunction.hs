@@ -14,11 +14,11 @@ import CTLModelCheckerAtoms (
     check)
 
 
-import SyntaxUtils ( Pred (..) )
+import SyntaxUtils (
+    Pred (..),
+    boundedGraphRep)
 
-import CTLSyntax (
-    Formula (..),
-    graphRep)
+import CTLSyntax (Formula (..))
 
 
 --import Parser (parser)
@@ -58,7 +58,7 @@ main =
                            mksat 3]
         myKripkeStructure = (myStates, myTrans, mySat)
 
-        myFormulaExpected = IndexedDisjunction (graphRep (\a -> ExistsNext (Predicate (Pred 0 [a]))))
+        myFormulaExpected = IndexedDisjunction (boundedGraphRep 1 (\[a] -> ExistsNext (Predicate (Pred 0 [a]))))
         -- is a state with Pred a reachable?
         --myFormula = parser "|_a . mu v0 . p0_a | <> v0"
         --myFormulaExpected = IndexedDisjunction (graphRep (\a -> (Mu vx (Disjunction (Predicate (Pred 0 [a])) (Diamond (Variable vx))))))

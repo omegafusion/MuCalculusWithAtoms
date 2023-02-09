@@ -6,15 +6,18 @@ import Data.Char (isDigit, isAlpha, isSpace)
 
 import Data.Map (Map, (!), empty, insert)
 
-import Lexer (Token (..),
-              lexer)
+import Lexer (
+      Token (..),
+      lexer)
               
-import SyntaxUtils (Pred (..))
-import MuSyntax (Var (..),
-               negateVars,
-               boundedGraphRep,
-               conditionalBoundedGraphRep,
-               freeLabels)
+import SyntaxUtils (
+      Pred (..),
+      boundedGraphRep,
+      conditionalBoundedGraphRep)
+import MuSyntax (
+      Var (..),
+      negateVars,
+      freeLabels)
 import qualified MuSyntax as Mu
 
 import qualified CTLSyntax as CTL

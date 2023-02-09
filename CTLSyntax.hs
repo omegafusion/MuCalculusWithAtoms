@@ -1,6 +1,5 @@
 module CTLSyntax (
-    Formula (..),
-    graphRep
+    Formula (..)
 ) where
 
 import Prelude (Eq, Ord, Show, Int, Bool)
@@ -19,22 +18,22 @@ import NLambda (
     true,
     false )
 import qualified NLambda as NL
-import GHC.Plugins (mapVarBndr)
-
 
 import SyntaxUtils (Pred (..))
 
 
+type FormulaSet = Set ([Atom], Formula)
+
 data Formula
-    = Predicate Pred
-    | Boolean Bool
-    | Disjunction Formula Formula
-    | IndexedDisjunction (Set (Atom, Formula))
-    | Negation Formula
-    | ExistsNext Formula
-    | ExistsUntil Formula Formula
-    | ExistsGlobally Formula
-    deriving (Eq, Ord, Show)
+  = Predicate Pred
+  | Boolean Bool
+  | Disjunction Formula Formula
+  | IndexedDisjunction FormulaSet
+  | Negation Formula
+  | ExistsNext Formula
+  | ExistsUntil Formula Formula
+  | ExistsGlobally Formula
+  deriving (Eq, Ord, Show)
 
 
 instance Nominal Formula where
@@ -70,7 +69,6 @@ instance Nominal Formula where
             ExistsUntil p q -> ExistsUntil (mapVariables mvf p) (mapVariables mvf q)
             ExistsGlobally p -> ExistsGlobally (mapVariables mvf p)
 
-
       foldVariables fvf acc formula = case formula of
             Predicate a -> foldVariables fvf acc a
             Boolean a -> foldVariables fvf acc a
@@ -80,7 +78,3 @@ instance Nominal Formula where
             ExistsNext p -> foldVariables fvf acc p
             ExistsUntil p q -> foldVariables fvf (foldVariables fvf acc p) q
             ExistsGlobally p -> foldVariables fvf acc p
-
-
-graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
-graphRep f = NL.map (\a -> (a, f a)) NL.atoms

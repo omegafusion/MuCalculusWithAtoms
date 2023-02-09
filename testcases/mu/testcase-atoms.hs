@@ -15,13 +15,13 @@ import ModelCheckerAtoms (check)
 
 import Parser (parser)
 
-import SyntaxUtils (Pred (..))
+import SyntaxUtils (
+    Pred (..),
+    constantAsGraph)
 
 import MuSyntax (
     Formula (..),
-    Var (..),
-    graphRep,
-    constantAsGraph)
+    Var (..))
 
 
 main :: P.IO()
