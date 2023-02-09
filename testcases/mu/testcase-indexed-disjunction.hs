@@ -21,7 +21,8 @@ import SyntaxUtils ( Pred (..) )
 import MuSyntax (
     Formula (..),
     Var (..),
-    graphRep)
+    graphRep,
+    constantAsGraph)
 
 
 import Parser (parser)
@@ -64,7 +65,7 @@ main =
         vy = Var 1 []
         -- is a state with Pred a reachable?
         myFormula = parser "M[ |_a . mu v0 . p0_a | <> v0 ]"
-        myFormulaExpected = Left $ IndexedDisjunction ([], NL.map (\a -> ([a], Mu vx ([0], NL.singleton ([], Disjunction (Predicate (Pred 0 [a])) (Diamond (Variable vx)))))) NL.atoms)
+        myFormulaExpected = Left $ IndexedDisjunction ([], NL.map (\a -> ([a], Mu vx ([0], constantAsGraph (Disjunction (Predicate (Pred 0 [a])) (Diamond (Variable vx)))))) NL.atoms)
         --myFormula = parser "mu v0 . p0 | <>v0"
         --myFormulaExpected = Mu vx (Disjunction (Predicate p0) (Diamond (Variable vx)))
         -- is a state with Pred d reachable?

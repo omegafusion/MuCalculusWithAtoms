@@ -5,10 +5,13 @@ module MuSyntax
      --substitute,
      negateVars,
      graphRep,
+     boundedGraphRep,
+     conditionalBoundedGraphRep,
+     constantAsGraph,
      freeLabels,
      label) where
 
-import Prelude ((==), (.), (+), (>=), (&&), Show, Eq, Ord, Bool, Int, undefined, show, compare, otherwise, maximum)
+import Prelude ((==), (.), (+), (>=), (&&), ($), Show, Eq, Ord, Bool, Int, undefined, show, compare, otherwise, maximum)
 import qualified Prelude as P
 
 import NLambda ((/\), Atom, Set, Nominal, eq, variant, mapVariables, foldVariables, atoms)
@@ -87,8 +90,21 @@ instance Eq Formula where
 graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
 graphRep f = NL.map (\a -> (a, f a)) atoms
 
-partialGraphRep :: Nominal a => Int -> ([Atom] -> a) -> Set ([Atom], a)
-partialGraphRep n f = NL.map (\as -> (as, f as)) (NL.replicateAtoms n)
+boundedGraphRep :: Nominal a => Int -> ([Atom] -> a) -> Set ([Atom], a)
+boundedGraphRep n f = NL.map (\as -> (as, f as)) $ NL.replicateAtoms n
+
+constantAsGraph :: (Nominal a, Nominal b) => b -> Set ([a], b)
+constantAsGraph p = NL.singleton ([], p)
+
+elementToSingleton :: Nominal a => (Atom -> a) -> ([Atom] -> a)
+elementToSingleton f [a] = f a
+
+conditionalGraphRep :: Nominal a => (Atom -> NL.Formula) -> (Atom -> a) -> Set (Atom, a)
+conditionalGraphRep cond f = NL.map (\a -> (a, f a)) $ NL.filter cond atoms
+
+conditionalBoundedGraphRep :: Nominal a => Int -> ([Atom] -> NL.Formula) -> ([Atom] -> a) -> Set ([Atom], a)
+conditionalBoundedGraphRep n cond f = NL.map (\as -> (as, f as)) $ NL.filter cond $ NL.replicateAtoms n
+
 
 -- Formulas are nominal types since they contain atoms.
 -- This only makes sense if Pred and Var are also nominal types. 

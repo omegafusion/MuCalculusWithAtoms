@@ -19,7 +19,8 @@ import SyntaxUtils (Pred (..))
 import MuSyntax (
     Formula (..),
     Var (..),
-    graphRep)
+    graphRep,
+    constantAsGraph)
 
 
 import Parser (parser)
@@ -56,10 +57,10 @@ main =
         vy = Var 1 []
         -- is a state with Pred a reachable?
         myFormula = parser "M[ mu v0 . p0_0 | <>v0 ]"
-        myFormulaExpected = Left $ Mu vx ([0], NL.singleton ([], Disjunction (Predicate pa) (Diamond (Variable vx))))
+        myFormulaExpected = Left $ Mu vx ([0], constantAsGraph (Disjunction (Predicate pa) (Diamond (Variable vx))))
         -- is a state with Pred d reachable?
         myFormula2 = parser "M[ mu v1 . p0_3 | <>v1 ]"
-        myFormula2Expected = Left $ Mu vy ([1], NL.singleton ([], Disjunction (Predicate pd) (Diamond (Variable vy))))
+        myFormula2Expected = Left $ Mu vy ([1], constantAsGraph (Disjunction (Predicate pd) (Diamond (Variable vy))))
         -- not Pred a and not Pred b
         myFormula3 = parser "M[ ~(p0_0 | p0_1) ]"
         myFormula3Expected = Left $ Negation (Disjunction (Predicate pa) (Predicate pb))
