@@ -104,16 +104,12 @@ MuFormula   : mu Variable dot MuFormula { \r ->
             | nu Variable dot MuFormula { \r ->
                   let formulaSet = NL.singleton ([], Mu.Negation ($4 r))
                   in Mu.Negation $ Mu.Mu ($2 r) (freeLabels ($4 r), formulaSet) }
-            | mu Variable lcurl mvar dot MuFormula rcurl { \r ->
-                  let formulaSet = boundedGraphRep 1 (\[a] -> $6 (insert $4 a r))
+            | mu Variable lcurl MVarList dot MuFormula rcurl { \r ->
+                  let formulaSet = boundedGraphRep (length $4) (\as -> $6 (insertFromLists $4 as r))
                   in Mu.Mu ($2 r) (freeLabels ($6 r), formulaSet)
               }
-            | nu Variable lcurl mvar dot MuFormula rcurl { \r ->
-                  let z = Mu.label ($2 r)
-                      mkphi1 = \a -> $6 (insert $4 a r)
-                      mkphi2 = negateVars [z] . mkphi1
-                      mkphi3 = Mu.Negation . mkphi2
-                      formulaSet = boundedGraphRep 1 (\[a] -> mkphi3 a)
+            | nu Variable lcurl MVarList dot MuFormula rcurl { \r ->
+                  let formulaSet = boundedGraphRep (length $4) (\as -> Mu.Negation $ negateVars [Mu.label ($2 r)] $ $6 (insertFromLists $4 as r))
                   in Mu.Negation $ Mu.Mu ($2 r) (freeLabels ($6 r), formulaSet)
               }
             | or under mvar Condition dot MuFormula { \r ->
@@ -154,10 +150,16 @@ Atoms       :                         { const [] }
 AtomList    : Atom                    { \r -> [$1 r] }
             | Atom comma AtomList     { \r -> ($1 r) : ($3 r) }
 
+MVarList    : mvar                    { [$1] }
+            | mvar comma MVarList     { $1 : $3 }
+
 Atom        : atom                    { const $1 }
             | mvar                    { (! $1) }
 
 {
+insertFromLists :: Ord k => [k] -> [a] -> Map k a -> Map k a
+insertFromLists ks as r = foldr (\(k, a) -> insert k a) r (zip ks as)
+
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
