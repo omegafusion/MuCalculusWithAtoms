@@ -7,14 +7,19 @@ module ModelCheckerUtils (
 
 
 import NLambda ( (/\), variant, Atom, Nominal(..), Set )
+import qualified NLambda as NL
 import SyntaxUtils ( Pred )
 
 data State = State Int [Atom] deriving (Show, Eq, Ord) -- TODO: Make into a set with atoms
 
 instance Nominal State where
+    
     eq (State i as) (State i' as') = i `eq` i' /\ as `eq` as'
+
     variants = variant
+
     mapVariables mvf (State i as) = State i (mapVariables mvf as)
+    
     foldVariables fvf acc (State i as) = foldVariables fvf acc as
 
 

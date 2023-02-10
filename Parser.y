@@ -68,8 +68,6 @@ import qualified NLambda as NL
 
 %%
 
--- TODO: Duals
-
 Formula     : m lbrack MuFormula rbrack { Left ($3 empty) }
             | c lbrack CTLFormula rbrack { Right ($3 empty) }
 
@@ -89,8 +87,9 @@ CTLFormula2 : not CTLFormula2             { CTL.Negation . $2 }
             | forall next CTLFormula2     { \r -> CTL.Negation $ CTL.ExistsNext $ CTL.Negation ($3 r) }
             | forall finally CTLFormula2  { \r -> CTL.Negation $ CTL.ExistsUntil (CTL.Boolean True) (CTL.Negation ($3 r)) }
             | forall globally CTLFormula2 { \r -> CTL.Negation $ CTL.ExistsGlobally $ CTL.Negation ($3 r) }
-            | forall lpar CTLFormula2 until CTLFormula2 rpar
-                  { \r -> CTL.Negation $ CTL.Disjunction (CTL.ExistsUntil (CTL.Negation ($5 r)) (CTL.Negation $ CTL.Disjunction ($3 r) ($5 r))) (CTL.ExistsGlobally $ CTL.Negation ($5 r)) }
+            | forall lpar CTLFormula2 until CTLFormula2 rpar { \r ->
+                  CTL.Negation $ CTL.Disjunction (CTL.ExistsUntil (CTL.Negation ($5 r)) (CTL.Negation $ CTL.Disjunction ($3 r) ($5 r))) (CTL.ExistsGlobally $ CTL.Negation ($5 r))
+              }
             | CTLFormula3                 { $1 }
 
 CTLFormula3 : true                    { const $ CTL.Boolean True }
@@ -170,6 +169,4 @@ addFreshAtoms xs r =
 
 parser :: String -> Either Mu.Formula CTL.Formula
 parser = calc . lexer
-
---main = getContents >>= print . calc . lexer
 }

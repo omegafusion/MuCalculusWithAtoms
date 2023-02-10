@@ -13,7 +13,7 @@ import NLambda (Atom, atom, constant)
 
 %wrapper "basic"
 
-$digit = 0-9			-- digits
+$digit = 0-9			  -- digits
 $alpha = [a-zA-Z]		-- alphabetic characters
 
 tokens :-
@@ -100,8 +100,4 @@ atomFromString = constant . toRational . read
 
 lexer :: String -> [Token]
 lexer = alexScanTokens
-
---main = do
---  s <- getContents
---  print (alexScanTokens s)
 }
