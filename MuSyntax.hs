@@ -76,7 +76,7 @@ instance Eq Formula where
         let (Var x as) = v 
             (Var x' as') = v'
             fl = bs ++ bs'
-            y = freshLabelFrom fl
+            y = freshLabelFrom (x : x' : fl)
         in as == as' && bs == bs' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s'
     _ == _ =
         P.False
@@ -104,7 +104,8 @@ instance Nominal Formula where
 
       -- Two formulas are equivalent if they are syntactically equal.
       eq :: Formula -> Formula -> NL.Formula
-      eq (Predicate a) (Predicate b) =
+      eq a b = NL.fromBool (a == b)
+      {-eq (Predicate a) (Predicate b) =
         eq a b
       eq (Boolean a) (Boolean b) =
         eq a b
@@ -123,7 +124,7 @@ instance Nominal Formula where
       {-eq (Mu x p) (Mu y q) =
         eq x y /\ eq p q-}
       eq _ _ =
-        NL.false
+        NL.false-}
 
       variants = variant
 
@@ -229,6 +230,7 @@ labelswap x y formula =
     in case formula of
             Variable v -> Variable (lsvar x y v)
             Predicate a -> Predicate a
+            Boolean a -> Boolean a
             IndexedDisjunction (bs, s) -> IndexedDisjunction (P.map (ls x y) bs, NL.map (second (labelswap x y)) s)
             Disjunction p q -> Disjunction (labelswap x y p) (labelswap x y q)
             Negation p -> Negation (labelswap x y p)
