@@ -17,12 +17,13 @@ import ModelCheckerUtils (
 import ModelCheckerAtoms (check)
 
 
-import SyntaxUtils ( Pred (..) )
+import SyntaxUtils (
+    Pred (..),
+    graphRep)
 
 import MuSyntax (
     Formula (..),
-    Var (..),
-    graphRep)
+    Var (..))
 
 
 import Parser (parser)

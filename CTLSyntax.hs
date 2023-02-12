@@ -1,6 +1,5 @@
 module CTLSyntax (
-    Formula (..),
-    graphRep
+    Formula (..)
 ) where
 
 import Prelude (Eq, Ord, Show, Int, Bool)
@@ -80,7 +79,3 @@ instance Nominal Formula where
             ExistsNext p -> foldVariables fvf acc p
             ExistsUntil p q -> foldVariables fvf (foldVariables fvf acc p) q
             ExistsGlobally p -> foldVariables fvf acc p
-
-
-graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)
-graphRep f = NL.map (\a -> (a, f a)) NL.atoms

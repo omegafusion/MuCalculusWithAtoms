@@ -9,7 +9,9 @@ module ModelCheckerUtils (
 import NLambda ( (/\), variant, Atom, Nominal(..), Set )
 import SyntaxUtils ( Pred )
 
-data State = State Int [Atom] deriving (Show, Eq, Ord) -- TODO: Make into a set with atoms
+-- TODO: Arbritrary sets with atoms?
+
+data State = State Int [Atom] deriving (Show, Eq, Ord)
 
 instance Nominal State where
     eq (State i as) (State i' as') = i `eq` i' /\ as `eq` as'
@@ -18,9 +20,9 @@ instance Nominal State where
     foldVariables fvf acc (State i as) = foldVariables fvf acc as
 
 
-type TransRel = Set (State, State) -- TODO: Convert to NLambda set
+type TransRel = Set (State, State)
 
-type SatRel = Set (State, Pred) -- TODO: Convert to NLambda set
+type SatRel = Set (State, Pred)
 
-type KripkeModel = (Set State, TransRel, SatRel) -- TODO: Convert to NLambda set
+type KripkeModel = (Set State, TransRel, SatRel)
 -- A Kripke model is a triple consisting of a state set, a transition relation and a satisfaction relation

@@ -24,9 +24,8 @@ import ModelCheckerUtils ( State (..), TransRel, SatRel, KripkeModel )
 
 
 
-type Interpretation = Map Var (NL.Set State) -- TODO: Convert to NLambda set
+type Interpretation = Map Var (NL.Set State)
 -- An interpretation is a mapping from the variables to the set of states
-
 
 
 check :: KripkeModel -> Formula -> NL.Set State
