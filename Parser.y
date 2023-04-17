@@ -22,7 +22,7 @@ import qualified MuSyntax as Mu
 
 import qualified CTLSyntax as CTL
 
-import NLambda (atom, atoms, difference, fromList)
+import NLambda (atom, atoms, difference, fromList, (/\))
 import qualified NLambda as NL
 }
 
@@ -71,8 +71,8 @@ import qualified NLambda as NL
 Formula     : m lbrack MuFormula rbrack { Left ($3 empty) }
             | c lbrack CTLFormula rbrack { Right ($3 empty) }
 
-CTLFormula  : or under mvar Condition dot CTLFormula { \r -> CTL.IndexedDisjunction $ conditionalBoundedGraphRep 1 ($4 r) (\[a] -> $6 (insert $3 a r)) }
-            | and under mvar Condition dot CTLFormula { \r -> CTL.Negation $ CTL.IndexedDisjunction $ conditionalBoundedGraphRep 1 ($4 r) (\[a] -> CTL.Negation $ $6 (insert $3 a r)) }
+CTLFormula  : or under mvar Conditions dot CTLFormula { \r -> CTL.IndexedDisjunction $ conditionalBoundedGraphRep 1 ($4 r) (\[a] -> $6 (insert $3 a r)) }
+            | and under mvar Conditions dot CTLFormula { \r -> CTL.Negation $ CTL.IndexedDisjunction $ conditionalBoundedGraphRep 1 ($4 r) (\[a] -> CTL.Negation $ $6 (insert $3 a r)) }
             | CTLFormula1               { $1 }
 
 CTLFormula1 : CTLFormula2 or CTLFormula1  { \r -> CTL.Disjunction ($1 r) ($3 r) }
@@ -111,18 +111,23 @@ MuFormula   : mu Variable dot MuFormula { \r ->
                   let formulaSet = boundedGraphRep (length $4) (\as -> Mu.Negation $ negateVars [Mu.label ($2 r)] $ $6 (insertFromLists $4 as r))
                   in Mu.Negation $ Mu.Mu ($2 r) (freeLabels ($6 r), formulaSet)
               }
-            | or under mvar Condition dot MuFormula { \r ->
+            | or under mvar Conditions dot MuFormula { \r ->
                   Mu.IndexedDisjunction (freeLabels ($6 r), conditionalBoundedGraphRep 1 ($4 r) (\[a] -> $6 (insert $3 a r)))
               }
-            | and under mvar Condition dot MuFormula { \r -> 
+            | and under mvar Conditions dot MuFormula { \r -> 
                   Mu.Negation $ Mu.IndexedDisjunction (freeLabels ($6 r), conditionalBoundedGraphRep 1 ($4 r) (\[a] ->  Mu.Negation $ $6 (insert $3 a r)))
               }
             | MuFormula1                { $1 }
 
-Condition   :                        { \r [a] -> NL.true }    
-            | neq Atom               { \r [a] -> a `NL.neq` ($2 r) }
-            | lt Atom                { \r [a] -> a `NL.lt` ($2 r) }
-            | gt Atom                { \r [a] -> a `NL.gt` ($2 r) }
+Conditions  : ConditionList          { \r [a] -> $1 r a }
+
+ConditionList     : Condition comma ConditionList     { \r a -> $1 r a /\ $3 r a }
+                  | Condition                         { $1 }
+
+Condition   :                        { \r a -> NL.true }    
+            | neq Atom               { \r a -> a `NL.neq` ($2 r) }
+            | lt Atom                { \r a -> a `NL.lt` ($2 r) }
+            | gt Atom                { \r a -> a `NL.gt` ($2 r) }
 
 MuFormula1  : MuFormula2 or MuFormula1  { \r -> Mu.Disjunction ($1 r) ($3 r) }
             | MuFormula2 and MuFormula1 { \r -> Mu.Negation $ Mu.Disjunction (Mu.Negation ($1 r)) (Mu.Negation ($3 r)) }
