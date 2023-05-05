@@ -18,8 +18,6 @@ import Data.Bifunctor (second)
 import Data.List ( (++), elem, null, foldr, notElem, delete )
 
 
---TODO: permit arbritrary sets with atoms??
-
 type Label = Int
 
 data Var = Var Label [Atom] deriving (Show, Eq, Ord)
