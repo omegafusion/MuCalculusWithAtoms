@@ -85,8 +85,8 @@ CTLFormula2 : not CTLFormula2             { CTL.Negation . $2 }
             | exists globally CTLFormula2 { \r -> CTL.ExistsGlobally ($3 r) }
             | exists lpar CTLFormula2 until CTLFormula2 rpar { \r -> CTL.ExistsUntil ($3 r) ($5 r) }
             | forall next CTLFormula2     { \r -> CTL.Negation $ CTL.ExistsNext $ CTL.Negation ($3 r) }
-            | forall finally CTLFormula2  { \r -> CTL.Negation $ CTL.ExistsUntil (CTL.Boolean True) (CTL.Negation ($3 r)) }
-            | forall globally CTLFormula2 { \r -> CTL.Negation $ CTL.ExistsGlobally $ CTL.Negation ($3 r) }
+            | forall finally CTLFormula2 { \r -> CTL.Negation $ CTL.ExistsGlobally $ CTL.Negation ($3 r) }
+            | forall globally CTLFormula2  { \r -> CTL.Negation $ CTL.ExistsUntil (CTL.Boolean True) (CTL.Negation ($3 r)) }
             | forall lpar CTLFormula2 until CTLFormula2 rpar { \r ->
                   CTL.Negation $ CTL.Disjunction (CTL.ExistsUntil (CTL.Negation ($5 r)) (CTL.Negation $ CTL.Disjunction ($3 r) ($5 r))) (CTL.ExistsGlobally $ CTL.Negation ($5 r))
               }
