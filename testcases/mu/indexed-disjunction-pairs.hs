@@ -31,7 +31,7 @@ import Parser (parser)
 
 main :: P.IO ()
 main = 
-    let a = constant 0
+    let {-a = constant 0
         b = constant 1
         c = constant 2
         d = constant 3
@@ -61,12 +61,21 @@ main =
                            mksat 1,
                            mksat 2,
                            mksat 3]
-        myKripkeStructure = (myStates, myTrans, mySat)
+        myKripkeStructure = (myStates, myTrans, mySat)-}
         vx = Var 0 []
         vy = Var 1 []
+
+        states = NL.map (State 0) (NL.replicateAtomsUntil 2)
+        trans = NL.map (\[a,b] -> (State 0 [a], State 0 [a,b])) (NL.replicateAtoms 2)
+                `NL.union` NL.map (\[a] -> (State 0 [], State 0 [a])) (NL.replicateAtoms 1)
+                `NL.union` NL.map (\as -> (State 0 as, State 0 as)) (NL.replicateAtoms 2)
+        sat = NL.map (\as -> (State 0 as, Pred 0 as)) (NL.replicateAtomsUntil 2)
+        myKripkeStructure = (states, trans, sat)
+
         -- is a state with Pred a reachable?
-        myFormula = parser "M[ |_a . mu v0 . p0_a | <> v0 ]"
-        myFormulaExpected = Left $ IndexedDisjunction ([], NL.map (\a -> ([a], Mu vx ([0], constantAsGraph (Disjunction (Predicate (Pred 0 [a])) (Diamond (Variable vx)))))) NL.atoms)
+        myFormula1 = parser "M[ |_a . |_b . mu v0 . p0_a,b | <> v0 ]"
+        myFormula2 = parser "M[ |_a . mu v0 . p0_a,a | <> v0 ]"
+        --myFormulaExpected = Left $ IndexedDisjunction ([], NL.map (\a -> ([a], Mu vx ([0], constantAsGraph (Disjunction (Predicate (Pred 0 [a])) (Diamond (Variable vx)))))) NL.atoms)
         --myFormula = parser "mu v0 . p0 | <>v0"
         --myFormulaExpected = Mu vx (Disjunction (Predicate p0) (Diamond (Variable vx)))
         -- is a state with Pred d reachable?
@@ -82,5 +91,5 @@ main =
         --print $ myFormula2 == myFormula2Expected
         --print $ check myKripkeStructure myFormula3  -- [c, d]
         --print $ myFormula3 == myFormula3Expected
-        print $ check myKripkeStructure myFormulaExpected
-        print $ myFormula == myFormulaExpected
+        print $ check myKripkeStructure myFormula1
+        print $ check myKripkeStructure myFormula2
