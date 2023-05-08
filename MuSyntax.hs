@@ -25,32 +25,33 @@ data Var = Var Label [Atom] deriving (Show, Eq, Ord)
 type FormulaSet = ([Label], Set ([Atom], Formula))
 
 data Formula
-  = Predicate Pred
-  | Boolean Bool
-  | Variable Var
-  | IndexedDisjunction FormulaSet
-  | Disjunction Formula Formula
-  | Negation Formula
-  | Diamond Formula
-  | Mu Var FormulaSet
-  deriving (Show, Ord)
+    = Predicate Pred
+    | Boolean Bool
+    | Variable Var
+    | IndexedDisjunction FormulaSet
+    | Disjunction Formula Formula
+    | Negation Formula
+    | Diamond Formula
+    | Mu Var FormulaSet
+    deriving (Show, Ord)
 
 
 instance Eq Formula where   -- Syntactic equality up to alpha conversion
-    Predicate a == Predicate b = a == b
-    Boolean a == Boolean b = a == b
-    Variable x == Variable y = x == y
-    IndexedDisjunction s == IndexedDisjunction s' = s == s'
-    Disjunction p q == Disjunction p' q' = p == p' && q == q'
-    Negation p == Negation p' = p == p'
-    Diamond p == Diamond p' = p == p' 
-    Mu v (bs, s) == Mu v' (bs', s') =
-        let (Var x as) = v 
-            (Var x' as') = v'
-            fl = bs ++ bs'
-            y = freshLabelFrom (x : x' : fl)
-        in as == as' && bs == bs' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s'
-    _ == _ = P.False
+    formula == formula' = case (formula, formula') of
+        (Predicate a, Predicate b) -> a == b
+        (Boolean a, Boolean b) -> a == b
+        (Variable x, Variable y) -> x == y
+        (IndexedDisjunction s, IndexedDisjunction s') -> s == s'
+        (Disjunction p q, Disjunction p' q') -> p == p' && q == q'
+        (Negation p, Negation p') -> p == p'
+        (Diamond p, Diamond p') -> p == p' 
+        (Mu v (bs, s), Mu v' (bs', s')) ->
+            let (Var x as) = v 
+                (Var x' as') = v'
+                fl = bs ++ bs'
+                y = freshLabelFrom (x : x' : fl)
+            in as == as' && bs == bs' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s'
+        (_, _) -> P.False
 
 
 instance Nominal Var where
@@ -61,24 +62,22 @@ instance Nominal Var where
 
 
 instance Nominal Formula where
-
-    Predicate a `eq` Predicate b = a `eq` b
-    Boolean a `eq` Boolean b = a `eq` b
-    Variable x `eq` Variable y = x `eq` y
-    IndexedDisjunction s `eq` IndexedDisjunction s' = s `eq` s'
-    Disjunction p q `eq` Disjunction p' q' = p `eq` p' /\ q `eq` q'
-    Negation p `eq` Negation p' = p `eq` p'
-    Diamond p `eq` Diamond p' = p `eq` p' 
-    Mu v (bs, s) `eq` Mu v' (bs', s') =
-        let (Var x as) = v 
-            (Var x' as') = v'
-            fl = bs ++ bs'
-            y = freshLabelFrom (x : x' : fl)
-        in as `eq` as' /\ bs `eq` bs' /\ NL.map (second (labelswap x y)) s `eq` NL.map (second (labelswap x' y)) s'
-    _ `eq` _ = NL.false
-
+    formula `eq` formula' = case (formula, formula') of
+        (Predicate a, Predicate b) -> a `eq` b
+        (Boolean a, Boolean b) -> a `eq` b
+        (Variable x, Variable y) -> x `eq` y
+        (IndexedDisjunction s, IndexedDisjunction s') -> s `eq` s'
+        (Disjunction p q, Disjunction p' q') -> p `eq` p' /\ q `eq` q'
+        (Negation p, Negation p') -> p `eq` p'
+        (Diamond p, Diamond p') -> p `eq` p' 
+        (Mu v (bs, s), Mu v' (bs', s')) ->
+            let (Var x as) = v 
+                (Var x' as') = v'
+                fl = bs ++ bs'
+                y = freshLabelFrom (x : x' : fl)
+            in as `eq` as' /\ bs `eq` bs' /\ NL.map (second (labelswap x y)) s `eq` NL.map (second (labelswap x' y)) s'
+        (_, _) -> NL.false
     variants = variant
-
     mapVariables f formula = case formula of
         Predicate a -> Predicate (mapVariables f a)
         Boolean a -> Boolean (mapVariables f a)
@@ -88,7 +87,6 @@ instance Nominal Formula where
         Negation p -> Negation (mapVariables f p)
         Diamond p -> Diamond (mapVariables f p)
         Mu x p -> Mu (mapVariables f x) (mapVariables f p)
-
     foldVariables f acc formula = case formula of
         Predicate a -> foldVariables f acc a
         Boolean a -> foldVariables f acc a

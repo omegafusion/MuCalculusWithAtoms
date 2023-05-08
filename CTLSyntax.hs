@@ -25,28 +25,29 @@ import SyntaxUtils (Pred (..))
 type FormulaSet = Set ([Atom], Formula)
 
 data Formula
-  = Predicate Pred
-  | Boolean Bool
-  | Disjunction Formula Formula
-  | IndexedDisjunction FormulaSet
-  | Negation Formula
-  | ExistsNext Formula
-  | ExistsUntil Formula Formula
-  | ExistsGlobally Formula
-  deriving (Eq, Ord, Show)
+    = Predicate Pred
+    | Boolean Bool
+    | Disjunction Formula Formula
+    | IndexedDisjunction FormulaSet
+    | Negation Formula
+    | ExistsNext Formula
+    | ExistsUntil Formula Formula
+    | ExistsGlobally Formula
+    deriving (Eq, Ord, Show)
 
 
 instance Nominal Formula where
 
-    (Predicate a) `eq` (Predicate a') = a `eq` a'
-    (Boolean a) `eq` (Boolean a') = a `eq` a'
-    (IndexedDisjunction s) `eq` (IndexedDisjunction s') = s `eq` s'
-    (Disjunction p q) `eq` (Disjunction p' q') = p `eq` p' /\ q `eq` q'
-    (Negation p) `eq` (Negation p') = p `eq` p'
-    (ExistsNext p) `eq` (ExistsNext p') = p `eq` p'
-    (ExistsUntil p q) `eq` (ExistsUntil p' q') = p `eq` p' /\ q `eq` q'
-    (ExistsGlobally p) `eq` (ExistsGlobally p') = p `eq` p'
-    _ `eq` _ = false
+    formula `eq` formula' = case (formula, formula') of
+        (Predicate a, Predicate a') -> a `eq` a'
+        (Boolean a, Boolean a') -> a `eq` a'
+        (IndexedDisjunction s, IndexedDisjunction s') -> s `eq` s'
+        (Disjunction p q, Disjunction p' q') -> p `eq` p' /\ q `eq` q'
+        (Negation p, Negation p') -> p `eq` p'
+        (ExistsNext p, ExistsNext p') -> p `eq` p'
+        (ExistsUntil p q, ExistsUntil p' q') -> p `eq` p' /\ q `eq` q'
+        (ExistsGlobally p, ExistsGlobally p') -> p `eq` p'
+        (_, _) -> false
 
     variants = variant
 
