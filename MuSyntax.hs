@@ -71,29 +71,50 @@ instance Nominal Var where
 
 instance Nominal Formula where
 
-      eq a b = NL.fromBool (a == b)
+    Predicate a `eq` Predicate b =
+        a `eq` b
+    Boolean a `eq` Boolean b =
+        a `eq` b
+    Variable x `eq` Variable y =
+        x `eq` y
+    IndexedDisjunction s `eq` IndexedDisjunction s' =
+        s `eq` s'
+    Disjunction p q `eq` Disjunction p' q' =
+        p `eq` p' /\ q `eq` q'
+    Negation p `eq` Negation p' =
+        p `eq` p'
+    Diamond p `eq` Diamond p' =
+        p `eq` p' 
+    Mu v (bs, s) `eq` Mu v' (bs', s') =
+        let (Var x as) = v 
+            (Var x' as') = v'
+            fl = bs ++ bs'
+            y = freshLabelFrom (x : x' : fl)
+        in as `eq` as' /\ bs `eq` bs' /\ NL.map (second (labelswap x y)) s `eq` NL.map (second (labelswap x' y)) s'
+    _ `eq` _ =
+        NL.false
 
-      variants = variant
+    variants = variant
 
-      mapVariables f formula = case formula of
-            Predicate a -> Predicate (mapVariables f a)
-            Boolean a -> Boolean (mapVariables f a)
-            Variable x -> Variable (mapVariables f x)
-            IndexedDisjunction (bs, s) -> IndexedDisjunction (bs, mapVariables f s)
-            Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
-            Negation p -> Negation (mapVariables f p)
-            Diamond p -> Diamond (mapVariables f p)
-            Mu x p -> Mu (mapVariables f x) (mapVariables f p)
+    mapVariables f formula = case formula of
+        Predicate a -> Predicate (mapVariables f a)
+        Boolean a -> Boolean (mapVariables f a)
+        Variable x -> Variable (mapVariables f x)
+        IndexedDisjunction (bs, s) -> IndexedDisjunction (bs, mapVariables f s)
+        Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
+        Negation p -> Negation (mapVariables f p)
+        Diamond p -> Diamond (mapVariables f p)
+        Mu x p -> Mu (mapVariables f x) (mapVariables f p)
 
-      foldVariables f acc formula = case formula of
-            Predicate a -> foldVariables f acc a
-            Boolean a -> foldVariables f acc a
-            Variable x -> foldVariables f acc x 
-            IndexedDisjunction (bs, s) -> foldVariables f acc (bs, s)
-            Disjunction p q -> foldVariables f (foldVariables f acc p) q
-            Negation p -> foldVariables f acc p
-            Diamond p -> foldVariables f acc p
-            Mu x p -> foldVariables f (foldVariables f acc x) p
+    foldVariables f acc formula = case formula of
+        Predicate a -> foldVariables f acc a
+        Boolean a -> foldVariables f acc a
+        Variable x -> foldVariables f acc x 
+        IndexedDisjunction (bs, s) -> foldVariables f acc (bs, s)
+        Disjunction p q -> foldVariables f (foldVariables f acc p) q
+        Negation p -> foldVariables f acc p
+        Diamond p -> foldVariables f acc p
+        Mu x p -> foldVariables f (foldVariables f acc x) p
 
 
 label :: Var -> Label
