@@ -34,10 +34,10 @@ main =
         formula7equiv = parser "C [ ~ E F E G ~p0 ]"
     in do
         -- sometimes, the parser places double negations. so we can remove these to get an equivalent formula
-        print $ formula1 == formula1expected;
-        print $ formula2 == formula2expected;
-        print $ formula3 == formula3equiv;
-        print $ formula4 == fmap removeDoubleNegations formula4equiv;
-        print $ formula5 == formula5equiv;
-        print $ fmap removeDoubleNegations formula6 == formula6equiv;
-        print $ fmap removeDoubleNegations formula7 == formula7equiv;
+        print $ formula1 `NL.eq` formula1expected;
+        print $ formula2 `NL.eq` formula2expected;
+        print $ formula3 `NL.eq` formula3equiv;
+        print $ formula4 `NL.eq` fmap removeDoubleNegations formula4equiv;
+        print $ formula5 `NL.eq` formula5equiv;
+        print $ fmap removeDoubleNegations formula6 `NL.eq` formula6equiv;
+        print $ fmap removeDoubleNegations formula7 `NL.eq` formula7equiv;

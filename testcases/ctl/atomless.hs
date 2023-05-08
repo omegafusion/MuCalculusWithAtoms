@@ -35,8 +35,8 @@ main =
         -- there is a path where p8 holds forever
         formula4 = parser "C [ E G p8 ]"
     in do
-        print $ check kripkeStructure formula1; -- expected: [0, 1, 4]
-        print $ check kripkeStructure formula5; -- expected: [4]
-        print $ check kripkeStructure formula2; -- expected: [6]
-        print $ check kripkeStructure formula3; -- expected: [1, 3, 4]
-        print $ check kripkeStructure formula4; -- expected: [0, 2, 5]
+        print $ check kripkeStructure formula1 `NL.eq` (NL.fromList $ map (\i -> State i []) [0, 1, 4]); -- expected: [0, 1, 4]
+        print $ check kripkeStructure formula5 `NL.eq` NL.singleton (State 4 []);                        -- expected: [4]
+        print $ check kripkeStructure formula2 `NL.eq` NL.singleton (State 6 []);                        -- expected: [6]
+        print $ check kripkeStructure formula3 `NL.eq` (NL.fromList $ map (\i -> State i []) [1, 3, 4]); -- expected: [1, 3, 4]
+        print $ check kripkeStructure formula4 `NL.eq` (NL.fromList $ map (\i -> State i []) [0, 2, 5]); -- expected: [0, 2, 5]

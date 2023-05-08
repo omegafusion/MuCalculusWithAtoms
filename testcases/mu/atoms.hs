@@ -25,13 +25,9 @@ import MuSyntax (
 
 
 main :: P.IO()
-main = let states :: NL.Set State
-           states = NL.insert (State 0 []) (NL.map (\a -> State 0 [a]) NL.atoms)
-           transRel :: TransRel
+main = let states = NL.insert (State 0 []) (NL.map (\a -> State 0 [a]) NL.atoms)
            transRel = NL.unions [NL.map (\a -> (State 0 [], State 0 [a])) NL.atoms, NL.map (\a -> (State 0 [a], State 0 [a])) NL.atoms]
-           satRel :: SatRel
            satRel = NL.map (\a -> (State 0 [a], Pred 0 [a])) NL.atoms
-           model :: KripkeModel
            model = (states, transRel, satRel)
 
            vx = Var 0 []
@@ -39,5 +35,5 @@ main = let states :: NL.Set State
            formula1 = parser "M[ mu v0 . p0_5 | <>v0 ]"
            formula1Expected = Left $ Mu vx ([0], constantAsGraph (Disjunction (Predicate pa) (Diamond (Variable vx))))
        in do
-           P.print $ check model formula1   -- {State 0 [], State 0 [5]}
-           P.print $ formula1 == formula1Expected
+           P.print $ check model formula1 --`NL.eq` NL.fromList [State 0 [], State 0 [NL.constant 5]]   -- {State 0 [], State 0 [5]}
+           P.print $ formula1 `NL.eq` formula1Expected

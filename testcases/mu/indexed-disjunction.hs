@@ -35,8 +35,8 @@ main =
         b = constant 1
         c = constant 2
         d = constant 3
-        mkstate i = NL.orbit [] (State i [atom "a"])
-        mkpred i = NL.orbit [] (Pred i [atom "a"])
+        mkstate i = NL.map (\a -> State i [a]) NL.atoms
+        mkpred i = NL.map (\a -> Pred i [a]) NL.atoms
         s0star = State 0 []
         s0s = mkstate 0
         s1s = mkstate 1
@@ -48,14 +48,14 @@ main =
         p3s = mkpred 3
         myStates :: NL.Set State
         myStates = NL.insert s0star (NL.unions [s0s, s1s, s2s, s3s])
-        mktrans i j = NL.orbit [] (State i [atom "a"], State j [atom "a"])
+        mktrans i j = NL.map (\a -> (State i [a], State j [a])) NL.atoms
         myTrans :: TransRel
-        myTrans = NL.union (NL.orbit [] (s0star, State 0 [atom "a"])) (NL.unions [mktrans 0 1,
+        myTrans = NL.union (NL.map (\a -> (s0star, State 0 [a])) NL.atoms) (NL.unions [mktrans 0 1,
                              mktrans 1 2,
                              mktrans 2 0,
                              mktrans 0 3,
                              mktrans 3 3])
-        mksat i = NL.orbit [] (State i [atom "a"], Pred i [atom "a"])
+        mksat i = NL.map (\a -> (State i [a], Pred i [a])) NL.atoms
         mySat :: SatRel
         mySat = NL.unions [mksat 0,
                            mksat 1,
@@ -67,20 +67,6 @@ main =
         -- is a state with Pred a reachable?
         myFormula = parser "M[ |_a . mu v0 . p0_a | <> v0 ]"
         myFormulaExpected = Left $ IndexedDisjunction ([], NL.map (\a -> ([a], Mu vx ([0], constantAsGraph (Disjunction (Predicate (Pred 0 [a])) (Diamond (Variable vx)))))) NL.atoms)
-        --myFormula = parser "mu v0 . p0 | <>v0"
-        --myFormulaExpected = Mu vx (Disjunction (Predicate p0) (Diamond (Variable vx)))
-        -- is a state with Pred d reachable?
-        --myFormula2 = parser "mu v1 . p3 | <>v1"
-        --myFormula2Expected = Mu vy (Disjunction (Predicate p3) (Diamond (Variable vy)))
-        -- not Pred a and not Pred b
-        --myFormula3 = parser "~(p0 | p1)"
-        --myFormula3Expected = Negation (Disjunction (Predicate p0) (Predicate p1))
     in do
-        --print $ check myKripkeStructure myFormula   -- [a, b, c]
-        --print $ myFormula == myFormulaExpected
-        --print $ check myKripkeStructure myFormula2  -- [a, b, c, d]
-        --print $ myFormula2 == myFormula2Expected
-        --print $ check myKripkeStructure myFormula3  -- [c, d]
-        --print $ myFormula3 == myFormula3Expected
-        print $ check myKripkeStructure myFormulaExpected   -- [s0, s0_a, s1_a, s2_a for each a]
-        print $ myFormula == myFormulaExpected
+        print $ myFormula `NL.eq` myFormulaExpected
+        print $ check myKripkeStructure myFormula `NL.eq` (NL.union (NL.singleton (State 0 [])) $ NL.unions $ P.map (\i -> NL.map (\a -> State i [a]) NL.atoms) [0..2])

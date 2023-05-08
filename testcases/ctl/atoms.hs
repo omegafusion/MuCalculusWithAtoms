@@ -26,10 +26,10 @@ main =
         formula6 = parser "C [ &_a . |_b . E F p2_a,b ]"
         formula7 = parser "C [ |_b . &_a . E F p2_a,b ]"
     in do
-        print $ check kripkeStructure formula1; -- [state2_a,b for all a,b]
-        print $ check kripkeStructure formula2; -- [all states]
-        print $ check kripkeStructure formula3; -- [only state2_a,b for all a,b]
-        print $ check kripkeStructure formula4; -- [all states]
-        print $ check kripkeStructure formula5; -- [only the initial state, s0]
-        print $ check kripkeStructure formula6; -- [only the initial state, s0]
-        print $ check kripkeStructure formula7; -- [only the initial state, s0]
+        print $ check kripkeStructure formula1 `NL.eq` NL.map (\as -> State 2 as) (NL.replicateAtoms 2); -- [state2_a,b for all a,b]
+        print $ check kripkeStructure formula2 `NL.eq` states; -- [all states]
+        print $ check kripkeStructure formula3 `NL.eq` NL.map (\as -> State 2 as) (NL.replicateAtoms 2); -- [only state2_a,b for all a,b]
+        print $ check kripkeStructure formula4 `NL.eq` states; -- [all states]
+        print $ check kripkeStructure formula5 `NL.eq` NL.singleton (State 0 []); -- [only the initial state, s0]
+        print $ check kripkeStructure formula6 `NL.eq` NL.singleton (State 0 []); -- [only the initial state, s0]
+        print $ check kripkeStructure formula7 `NL.eq` NL.singleton (State 0 []); -- [only the initial state, s0]

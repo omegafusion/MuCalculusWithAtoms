@@ -47,13 +47,12 @@ main =
         -- for some atom, the states without any predicates labelled with atoms other than that atom
         myFormula1 = parser "M[ |_a . &_b/=a .  ~p0_b ]"
         myFormula2 = parser "M[ |_a . &_b<a .  ~p0_b ]"
-       -- myFormulaExpected = ???
     in do
-        print $ check myKripkeStructure1 myFormula1 -- all states
-        print $ check myKripkeStructure1 myFormula2 -- all states
-        print $ check myKripkeStructure2 myFormula1 -- no states
-        print $ check myKripkeStructure2 myFormula2 -- no states
-        print $ check myKripkeStructure3 myFormula1 -- { State 0 [0] }
-        print $ check myKripkeStructure3 myFormula2 -- { State 0 [a] : a >= 0 } i.e. the entire state space for this example
-        print $ check myKripkeStructure4 myFormula1 -- { State 0 [a] : a <= 0 }
-        print $ check myKripkeStructure4 myFormula2 -- all states
+        print $ check myKripkeStructure1 myFormula1 `NL.eq` myStates1 -- all states
+        print $ check myKripkeStructure1 myFormula2 `NL.eq` myStates1 -- all states
+        print $ check myKripkeStructure2 myFormula1 `NL.eq` NL.empty -- no states
+        print $ check myKripkeStructure2 myFormula2 `NL.eq` NL.empty -- no states
+        print $ check myKripkeStructure3 myFormula1 `NL.eq` (NL.singleton (State 0 [NL.constant 0])) -- { State 0 [0] }
+        print $ check myKripkeStructure3 myFormula2 `NL.eq` (NL.map (\a -> State 0 [a]) $ NL.filter (`NL.ge` NL.constant 0) NL.atoms)-- { State 0 [a] : a >= 0 } i.e. the entire state space for this example
+        print $ check myKripkeStructure4 myFormula1 `NL.eq` (NL.map (\a -> State 0 [a]) $ NL.filter (`NL.le` NL.constant 0) NL.atoms) -- { State 0 [a] : a <= 0 }
+        print $ check myKripkeStructure4 myFormula2 `NL.eq` myStates1 -- all states
