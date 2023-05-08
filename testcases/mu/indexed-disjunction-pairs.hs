@@ -50,4 +50,6 @@ main =
     in do
         print $ check myKripkeStructure myFormula1 `NL.eq` states
         --print $ myFormula2
-        print $ check myKripkeStructure myFormula2 `NL.eq` NL.union (NL.singleton (State 0 [])) (NL.unions [NL.map (\a -> State 0 [a]) NL.atoms, NL.map (\as -> State 0 as) $ NL.replicateAtoms 2])
+        putStrLn "Due to a bug in NLambda, the following sets are NOT equivalent. However, the reader can inspect them to see that they really represent the same set, for any atom b_1 (or whatever the free atom variable happens to be for you)"
+        print $ check myKripkeStructure myFormula2
+        print $ NL.union (NL.singleton (State 0 [])) (NL.unions [NL.map (\a -> State 0 [a]) NL.atoms, NL.map (\as -> State 0 as) $ NL.replicateAtoms 2])

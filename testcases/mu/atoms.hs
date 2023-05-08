@@ -35,5 +35,5 @@ main = let states = NL.insert (State 0 []) (NL.map (\a -> State 0 [a]) NL.atoms)
            formula1 = parser "M[ mu v0 . p0_5 | <>v0 ]"
            formula1Expected = Left $ Mu vx ([0], constantAsGraph (Disjunction (Predicate pa) (Diamond (Variable vx))))
        in do
-           P.print $ check model formula1 --`NL.eq` NL.fromList [State 0 [], State 0 [NL.constant 5]]   -- {State 0 [], State 0 [5]}
+           P.print $ check model formula1 `NL.eq` NL.fromList [State 0 [], State 0 [NL.constant 5]]   -- {State 0 [], State 0 [5]}
            P.print $ formula1 `NL.eq` formula1Expected
