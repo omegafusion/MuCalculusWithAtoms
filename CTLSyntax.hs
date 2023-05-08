@@ -38,7 +38,6 @@ data Formula
 
 instance Nominal Formula where
 
-      -- Two formulas are equivalent if they are syntactically equal. -- TODO: syntactic or semantic equivalence?
       eq (Predicate a) (Predicate a') =
         eq a a'
       eq (Boolean a) (Boolean a') =

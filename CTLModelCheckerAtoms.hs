@@ -8,7 +8,6 @@ import qualified Prelude as P
 
 import NLambda (Atom, Nominal, (/\), eq, contains, variants, variant, mapVariables, foldVariables)
 import qualified NLambda as NL
---import qualified Data.Set as Set
 
 import Data.Map (Map, (!))
 import qualified Data.Map as Map

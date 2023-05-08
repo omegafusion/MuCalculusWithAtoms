@@ -167,11 +167,6 @@ insertFromLists ks as r = foldr (\(k, a) -> insert k a) r (zip ks as)
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
-addFreshAtoms :: [String] -> Map String NL.Atom -> Map String NL.Atom
-addFreshAtoms xs r =
-      let pairs = map (\a -> (a, NL.atom a)) xs
-      in foldr (uncurry insert) r pairs
-
 parser :: String -> Either Mu.Formula CTL.Formula
 parser = calc . lexer
 }
