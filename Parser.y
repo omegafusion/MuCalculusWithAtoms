@@ -98,10 +98,10 @@ CTLFormula3 : true                    { const $ CTL.Boolean True }
             | lpar CTLFormula rpar    { $2 }
 
 MuFormula   : mu Variable dot MuFormula { \r ->
-                  let formulaSet = NL.singleton ([], ($4 r))
+                  let formulaSet = NL.singleton ([], $4 r)
                   in Mu.Mu ($2 r) (freeLabels ($4 r), formulaSet) }
             | nu Variable dot MuFormula { \r ->
-                  let formulaSet = NL.singleton ([], Mu.Negation ($4 r))
+                  let formulaSet = NL.singleton ([], Mu.Negation $ negateVars [Mu.label ($2 r)] ($4 r))
                   in Mu.Negation $ Mu.Mu ($2 r) (freeLabels ($4 r), formulaSet) }
             | mu Variable lcurl MVarList dot MuFormula rcurl { \r ->
                   let formulaSet = boundedGraphRep (length $4) (\as -> $6 (insertFromLists $4 as r))
