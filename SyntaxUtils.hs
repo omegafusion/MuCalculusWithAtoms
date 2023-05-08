@@ -1,9 +1,9 @@
 module SyntaxUtils (
-      Pred (..),
-      graphRep,
-      boundedGraphRep,
-      conditionalBoundedGraphRep,
-      constantAsGraph) where
+    Pred (..),
+    graphRep,
+    boundedGraphRep,
+    conditionalBoundedGraphRep,
+    constantAsGraph) where
 
 
 import NLambda (Atom, Nominal, Set, (/\), eq, variants, variant, mapVariables, foldVariables)
@@ -13,14 +13,10 @@ import qualified NLambda as NL
 data Pred = Pred Int [Atom] deriving (Show, Eq, Ord)
 
 instance Nominal Pred where
-
-      eq (Pred n as) (Pred n' as') = eq n n' /\ eq as as'
-
-      variants = variant
-
-      mapVariables mvf (Pred n as) = Pred n (mapVariables mvf as)
-
-      foldVariables fvf acc (Pred n as) = foldVariables fvf acc as
+    (Pred i as) `eq` (Pred i' as') = i `eq` i' /\ as `eq` as'
+    variants = variant
+    mapVariables f (Pred i as) = Pred i (mapVariables f as)
+    foldVariables f acc (Pred i as) = foldVariables f acc as
 
 
 graphRep :: Nominal a => (Atom -> a) -> Set (Atom, a)

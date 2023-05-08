@@ -15,12 +15,9 @@ data State = State Int [Atom] deriving (Show, Eq, Ord)
 instance Nominal State where
     
     eq (State i as) (State i' as') = i `eq` i' /\ as `eq` as'
-
     variants = variant
-
-    mapVariables mvf (State i as) = State i (mapVariables mvf as)
-    
-    foldVariables fvf acc (State i as) = foldVariables fvf acc as
+    mapVariables f (State i as) = State i (mapVariables f as)
+    foldVariables f acc (State i as) = foldVariables f acc as
 
 
 type TransRel = Set (State, State)

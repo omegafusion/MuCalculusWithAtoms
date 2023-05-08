@@ -37,62 +37,45 @@ data Formula
 
 
 instance Eq Formula where   -- Syntactic equality up to alpha conversion
-    Predicate a == Predicate b =
-        a == b
-    Boolean a == Boolean b =
-        a == b
-    Variable x == Variable y =
-        x == y
-    IndexedDisjunction s == IndexedDisjunction s' =
-        s == s'
-    Disjunction p q == Disjunction p' q' =
-        p == p' && q == q'
-    Negation p == Negation p' =
-        p == p'
-    Diamond p == Diamond p' =
-        p == p' 
+    Predicate a == Predicate b = a == b
+    Boolean a == Boolean b = a == b
+    Variable x == Variable y = x == y
+    IndexedDisjunction s == IndexedDisjunction s' = s == s'
+    Disjunction p q == Disjunction p' q' = p == p' && q == q'
+    Negation p == Negation p' = p == p'
+    Diamond p == Diamond p' = p == p' 
     Mu v (bs, s) == Mu v' (bs', s') =
         let (Var x as) = v 
             (Var x' as') = v'
             fl = bs ++ bs'
             y = freshLabelFrom (x : x' : fl)
         in as == as' && bs == bs' && NL.map (second (labelswap x y)) s == NL.map (second (labelswap x' y)) s'
-    _ == _ =
-        P.False
+    _ == _ = P.False
 
 
 instance Nominal Var where
-      eq (Var xlabel xatoms) (Var ylabel yatoms) = 
-            NL.fromBool (xlabel == ylabel) /\ eq xatoms yatoms
-      variants = variant
-      mapVariables mvf (Var lab as) = Var lab (mapVariables mvf as)
-      foldVariables fvf acc (Var lab as) = foldVariables fvf acc as
+    (Var i as) `eq` (Var i' as') = i `eq` i' /\ as `eq` as'
+    variants = variant
+    mapVariables f (Var i as) = Var i (mapVariables f as)
+    foldVariables f acc (Var i as) = foldVariables f acc as
 
 
 instance Nominal Formula where
 
-    Predicate a `eq` Predicate b =
-        a `eq` b
-    Boolean a `eq` Boolean b =
-        a `eq` b
-    Variable x `eq` Variable y =
-        x `eq` y
-    IndexedDisjunction s `eq` IndexedDisjunction s' =
-        s `eq` s'
-    Disjunction p q `eq` Disjunction p' q' =
-        p `eq` p' /\ q `eq` q'
-    Negation p `eq` Negation p' =
-        p `eq` p'
-    Diamond p `eq` Diamond p' =
-        p `eq` p' 
+    Predicate a `eq` Predicate b = a `eq` b
+    Boolean a `eq` Boolean b = a `eq` b
+    Variable x `eq` Variable y = x `eq` y
+    IndexedDisjunction s `eq` IndexedDisjunction s' = s `eq` s'
+    Disjunction p q `eq` Disjunction p' q' = p `eq` p' /\ q `eq` q'
+    Negation p `eq` Negation p' = p `eq` p'
+    Diamond p `eq` Diamond p' = p `eq` p' 
     Mu v (bs, s) `eq` Mu v' (bs', s') =
         let (Var x as) = v 
             (Var x' as') = v'
             fl = bs ++ bs'
             y = freshLabelFrom (x : x' : fl)
         in as `eq` as' /\ bs `eq` bs' /\ NL.map (second (labelswap x y)) s `eq` NL.map (second (labelswap x' y)) s'
-    _ `eq` _ =
-        NL.false
+    _ `eq` _ = NL.false
 
     variants = variant
 

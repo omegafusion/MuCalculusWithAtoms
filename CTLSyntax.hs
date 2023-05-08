@@ -38,42 +38,34 @@ data Formula
 
 instance Nominal Formula where
 
-      eq (Predicate a) (Predicate a') =
-        eq a a'
-      eq (Boolean a) (Boolean a') =
-        eq a a'
-      eq (IndexedDisjunction f) (IndexedDisjunction f') =
-        eq f f'
-      eq (Disjunction p q) (Disjunction p' q') =
-        eq p p' /\ eq q q'
-      eq (Negation p) (Negation p') =
-        eq p p'
-      eq (ExistsNext p) (ExistsNext p') =
-        eq p p'
-      eq (ExistsUntil p q) (ExistsUntil p' q') =
-        eq p p' /\ eq q q'
-      eq (ExistsGlobally p) (ExistsGlobally p') =
-        eq p p'
-      eq _ _ = false
+    (Predicate a) `eq` (Predicate a') = a `eq` a'
+    (Boolean a) `eq` (Boolean a') = a `eq` a'
+    (IndexedDisjunction s) `eq` (IndexedDisjunction s') = s `eq` s'
+    (Disjunction p q) `eq` (Disjunction p' q') = p `eq` p' /\ q `eq` q'
+    (Negation p) `eq` (Negation p') = p `eq` p'
+    (ExistsNext p) `eq` (ExistsNext p') = p `eq` p'
+    (ExistsUntil p q) `eq` (ExistsUntil p' q') = p `eq` p' /\ q `eq` q'
+    (ExistsGlobally p) `eq` (ExistsGlobally p') = p `eq` p'
+    _ `eq` _ = false
 
-      variants = variant
+    variants = variant
 
-      mapVariables mvf formula = case formula of
-            Predicate a -> Predicate (mapVariables mvf a)
-            Boolean a -> Boolean (mapVariables mvf a)
-            IndexedDisjunction s -> IndexedDisjunction (mapVariables mvf s)
-            Disjunction p q -> Disjunction (mapVariables mvf p) (mapVariables mvf q)
-            Negation p -> Negation (mapVariables mvf p)
-            ExistsNext p -> ExistsNext (mapVariables mvf p)
-            ExistsUntil p q -> ExistsUntil (mapVariables mvf p) (mapVariables mvf q)
-            ExistsGlobally p -> ExistsGlobally (mapVariables mvf p)
+    mapVariables f formula = case formula of
+        Predicate a -> Predicate (mapVariables f a)
+        Boolean a -> Boolean (mapVariables f a)
+        IndexedDisjunction s -> IndexedDisjunction (mapVariables f s)
+        Disjunction p q -> Disjunction (mapVariables f p) (mapVariables f q)
+        Negation p -> Negation (mapVariables f p)
+        ExistsNext p -> ExistsNext (mapVariables f p)
+        ExistsUntil p q -> ExistsUntil (mapVariables f p) (mapVariables f q)
+        ExistsGlobally p -> ExistsGlobally (mapVariables f p)
 
-      foldVariables fvf acc formula = case formula of
-            Predicate a -> foldVariables fvf acc a
-            Boolean a -> foldVariables fvf acc a
-            IndexedDisjunction s -> foldVariables fvf acc s
-            Disjunction p q -> foldVariables fvf (foldVariables fvf acc p) q
-            Negation p -> foldVariables fvf acc p
-            ExistsNext p -> foldVariables fvf acc p
-            ExistsUntil p q -> foldVariables fvf (foldVariables fvf acc p) q
-            ExistsGlobally p -> foldVariables fvf acc p
+    foldVariables f acc formula = case formula of
+        Predicate a -> foldVariables f acc a
+        Boolean a -> foldVariables f acc a
+        IndexedDisjunction s -> foldVariables f acc s
+        Disjunction p q -> foldVariables f (foldVariables f acc p) q
+        Negation p -> foldVariables f acc p
+        ExistsNext p -> foldVariables f acc p
+        ExistsUntil p q -> foldVariables f (foldVariables f acc p) q
+        ExistsGlobally p -> foldVariables f acc p
